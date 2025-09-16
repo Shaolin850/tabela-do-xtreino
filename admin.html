@@ -1,0 +1,143 @@
+
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ModaVersa - Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="theme-light admin">
+  <header class="header admin-head">
+    <div class="container space">
+      <div class="brand-inline">
+        <div class="brand-mark small">MV</div>
+        <strong>Admin • ModaVersa</strong>
+      </div>
+      <div class="admin-actions" style="display:flex; gap:8px; align-items:center">
+        <button id="btnThemeAdmin" class="btn ghost" title="Tema">🌓</button>
+        <a class="btn ghost" href="index.html">↩ Loja</a>
+        <button id="logout" class="btn">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container admin-wrap">
+    <!-- Login -->
+    <section id="loginCard" class="panel" style="max-width:560px; margin:auto;">
+      <h3>Acesso administrativo</h3>
+      <p class="muted">Use a senha de administrador (padrão: admin123).</p>
+      <div class="form">
+        <label>Senha</label>
+        <input type="password" id="adminPass" placeholder="••••••••"/>
+        <button id="doLogin" class="btn primary">Entrar</button>
+      </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dash" class="hide">
+      <div class="toolbar">
+        <div class="form row">
+          <label>Pesquisar</label>
+          <input id="admSearch" type="text" placeholder="Nome ou SKU"/>
+        </div>
+        <div class="form row">
+          <label>Categoria</label>
+          <select id="admCat">
+            <option value="all">Todas</option>
+            <option value="feminino">Feminino</option>
+            <option value="masculino">Masculino</option>
+            <option value="infantil">Infantil</option>
+            <option value="calcados">Calçados</option>
+            <option value="acessorios">Acessórios</option>
+            <option value="esporte">Esporte</option>
+            <option value="praia">Praia</option>
+            <option value="jeans">Jeans</option>
+            <option value="outono">Outono</option>
+          </select>
+        </div>
+        <div class="grow"></div>
+        <button id="newItem" class="btn success">+ Novo produto</button>
+        <button id="exportData" class="btn ghost">Exportar JSON</button>
+        <label class="btn ghost">
+          Importar JSON
+          <input type="file" id="importData" accept="application/json" hidden/>
+        </label>
+      </div>
+
+      <div id="admGrid" class="table"></div>
+    </section>
+
+    <!-- Modal produto -->
+    <div class="modal-backdrop" id="modal">
+      <div class="modal">
+        <div class="modal-head">
+          <strong id="modalTitle">Produto</strong>
+          <button id="closeModal" class="btn circle">✖</button>
+        </div>
+        <div class="modal-body">
+          <div class="grid-2">
+            <div class="form">
+              <label>Nome</label>
+              <input id="pName" placeholder="Ex.: Camisa de linho"/>
+            </div>
+            <div class="form">
+              <label>SKU</label>
+              <input id="pSku" placeholder="Ex.: MV-001"/>
+            </div>
+            <div class="form">
+              <label>Preço (R$)</label>
+              <input id="pPrice" type="number" step="0.01" min="0"/>
+            </div>
+            <div class="form">
+              <label>Estoque</label>
+              <input id="pStock" type="number" step="1" min="0"/>
+            </div>
+            <div class="form">
+              <label>Categoria</label>
+              <select id="pCat">
+                <option value="feminino">Feminino</option>
+                <option value="masculino">Masculino</option>
+                <option value="infantil">Infantil</option>
+                <option value="calcados">Calçados</option>
+                <option value="acessorios">Acessórios</option>
+                <option value="esporte">Esporte</option>
+                <option value="praia">Praia</option>
+                <option value="jeans">Jeans</option>
+                <option value="outono">Outono</option>
+              </select>
+            </div>
+            <div class="form">
+              <label>Avaliação (0-5)</label>
+              <input id="pRating" type="number" step="0.1" min="0" max="5"/>
+            </div>
+            <div class="form">
+              <label>Imagem (URL)</label>
+              <input id="pImg" placeholder="https://..."/>
+            </div>
+            <div class="form">
+              <label>Marca</label>
+              <input id="pBrand" placeholder="Ex.: ModaVersa"/>
+            </div>
+            <div class="form row">
+              <label class="check"><input id="pFeatured" type="checkbox"/> Destaque</label>
+              <label class="check"><input id="pSale" type="checkbox"/> Em oferta</label>
+            </div>
+            <div class="form span-2">
+              <label>Descrição</label>
+              <textarea id="pDesc" rows="3" placeholder="Detalhes do produto..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button id="delProduct" class="btn danger hide">Excluir</button>
+          <div class="grow"></div>
+          <button id="saveProduct" class="btn primary">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
