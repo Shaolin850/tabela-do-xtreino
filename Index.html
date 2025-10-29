@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tabela do XTreino da TOMAN ☯️</title>
+  <link rel="stylesheet" href="style.css"/>
+
+  <!-- Bibliotecas usadas (mantidas) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <!-- HEADER REORGANIZADO -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="brand">
+        <span class="brand-icon">☯️</span>
+        <h1>Tabela do XTreino da TOMAN</h1>
+      </div>
+    </div>
+    <nav class="toolbar">
+      <button id="btnRandomTheme" class="btn neon">Tema Aleatório</button>
+      <button id="btnToggleAnim" class="btn ghost">Animações: ON</button>
+      <button id="btnExportPNG" class="btn outline">Exportar PNG</button>
+      <button id="btnExportPDF" class="btn outline">Exportar PDF</button>
+      <button id="btnSharePDF" class="btn ghost">Compartilhar PDF</button>
+      <button id="btnPosterTop3" class="btn neon">Pôster TOP 3</button>
+    </nav>
+  </header>
+
+  <!-- Editor de tema (compacto) -->
+  <section class="theme-editor card">
+    <h2>Personalizar Tema</h2>
+    <div class="theme-pickers">
+      <div class="theme-group">
+        <label>Primária</label>
+        <input type="color" id="colorPrimary" value="#00e7ff"/>
+      </div>
+      <div class="theme-group">
+        <label>Secundária</label>
+        <input type="color" id="colorSecondary" value="#ff004c"/>
+      </div>
+      <div class="theme-group">
+        <label>Fundo</label>
+        <input type="color" id="colorBg" value="#0a0b10"/>
+      </div>
+      <div class="theme-group">
+        <label>Texto</label>
+        <input type="color" id="colorText" value="#e8f1ff"/>
+      </div>
+      <button id="btnApplyTheme" class="btn tiny">Aplicar Tema</button>
+    </div>
+  </section>
+
+  <!-- Editor dos times -->
+  <section class="editor card">
+    <h2>Cadastro das LINEs (12 slots)</h2>
+    <p class="muted">Nomes das LINEs ficam em branco para você preencher. Kills devem ser informadas manualmente nos players.</p>
+    <div id="teamsContainer" class="teams-grid">
+      <!-- Gerado via JS -->
+    </div>
+    <div class="editor-actions">
+      <button id="btnClear" class="btn ghost">Limpar Tudo</button>
+      <button id="btnCompute" class="btn neon">Calcular Pontuação</button>
+    </div>
+  </section>
+
+  <!-- Tabelas -->
+  <section class="scoreboard card" id="scoreboard">
+    <h2>Tabela de Pontuação</h2>
+    <div class="legend muted">
+      Regras: kill = 5 pts • Top 1 = +20 • Top 2 = +15 • Top 3 = +10
+    </div>
+    <div class="table-wrap">
+      <table id="scoreTable">
+        <thead>
+          <tr>
+            <th class="sticky">Posição</th>
+            <th class="sticky">LINE / Equipe</th>
+            <th>Total Kills</th>
+            <th>Bônus</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody id="scoreBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Pôster -->
+  <section class="poster card">
+    <h2>Pôster TOP 3</h2>
+    <canvas id="posterCanvas" width="1080" height="1080" style="max-width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.08)"></canvas>
+    <div class="editor-actions">
+      <button id="btnDownloadPoster" class="btn outline">Baixar Pôster (PNG)</button>
+      <button id="btnSharePoster" class="btn ghost">Compartilhar Pôster</button>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>© Tabela do XTreino da TOMAN ☯️ — Mobile e Desktop</span>
+  </footer>
+</body>
+</html>
