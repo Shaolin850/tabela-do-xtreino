@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tabela do XTreino da TOMAN ☯️</title>
+  <link rel="stylesheet" href="style.css"/>
+
+  <!-- Bibliotecas usadas -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- Lógica da aplicação -->
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <main class="container">
+    <!-- HEADER -->
+    <header class="app-header" role="banner">
+      <div class="brand" aria-hidden="false">
+        <span class="brand-icon" aria-hidden="true">TM</span>
+        <div>
+          <h1>Tabela do XTreino da TOMAN</h1>
+          <div class="subtitle small muted">Gerencie 12 LINEs — posições das quedas, booyas e kills por queda</div>
+        </div>
+      </div>
+
+      <nav class="toolbar" role="navigation" aria-label="Ações rápidas">
+        <button id="btnRandomTheme" class="btn neon" type="button">Tema Aleatório</button>
+        <button id="btnToggleAnim" class="btn ghost" type="button">Animações: ON</button>
+        <button id="btnExportPNG" class="btn outline" type="button">Exportar PNG</button>
+        <button id="btnExportPDF" class="btn outline" type="button">Exportar PDF</button>
+        <button id="btnSharePDF" class="btn ghost" type="button">Compartilhar PDF</button>
+        <button id="btnPosterTop3" class="btn neon" type="button">Pôster TOP 3</button>
+      </nav>
+    </header>
+
+    <!-- LAYOUT PRINCIPAL -->
+    <section class="layout" role="main">
+
+      <!-- COLUNA ESQUERDA -->
+      <div class="col-main">
+        <!-- Tema -->
+        <section class="theme-editor card" aria-labelledby="themeTitle">
+          <h2 id="themeTitle">Personalizar Tema</h2>
+          <div class="theme-pickers">
+            <div class="theme-group">
+              <label for="colorPrimary">Primária</label>
+              <input type="color" id="colorPrimary" value="#00e7ff"/>
+            </div>
+            <div class="theme-group">
+              <label for="colorSecondary">Secundária</label>
+              <input type="color" id="colorSecondary" value="#ff004c"/>
+            </div>
+            <div class="theme-group">
+              <label for="colorBg">Fundo</label>
+              <input type="color" id="colorBg" value="#0a0b10"/>
+            </div>
+            <div class="theme-group">
+              <label for="colorText">Texto</label>
+              <input type="color" id="colorText" value="#e8f1ff"/>
+            </div>
+            <button id="btnApplyTheme" class="btn tiny" type="button">Aplicar Tema</button>
+          </div>
+        </section>
+
+        <!-- Editor dos times -->
+        <section class="editor card" aria-labelledby="editorTitle">
+          <h2 id="editorTitle">Cadastro das LINEs (12 slots)</h2>
+          <p class="muted">
+            Preencha apenas: <strong>Nome da equipe</strong> e, para cada queda, informe a <strong>posição</strong> e as <strong>kills</strong>.
+            O sistema calcula automaticamente as <strong>booyas</strong> (vitórias por queda), o <strong>total de kills</strong> e o <strong>score</strong>.
+            (Não é mais necessário informar uma posição final separada — tudo é calculado a partir das quedas.)
+          </p>
+
+          <!-- Container preenchido dinamicamente pelo JS -->
+          <div id="teamsContainer" class="teams-grid" aria-live="polite"></div>
+
+          <div class="editor-actions" style="margin-top:10px;">
+            <button id="btnClear" class="btn ghost" type="button">Limpar Tudo</button>
+            <button id="btnCompute" class="btn neon" type="button">Calcular Pontuação</button>
+          </div>
+
+          <!-- Resumo rápido (fallback / debug) -->
+          <div id="timesResumo" class="times-resumo" aria-live="polite" style="margin-top:12px;"></div>
+        </section>
+      </div>
+
+      <!-- COLUNA DIREITA -->
+      <aside class="col-side" aria-label="Painel direito">
+        <!-- PÓDIO -->
+        <section class="podium card" aria-labelledby="podioTitle">
+          <h2 id="podioTitle">Pódio (Top 3)</h2>
+          <div class="podium-grid" role="list">
+            <div class="podium-card" role="listitem" aria-label="1º lugar">
+              <img id="podium1Logo" class="podium-logo" src="" alt="Logo 1º" />
+              <div class="podium-info">
+                <div id="podium1Name" class="podium-name">—</div>
+                <div id="podium1Score" class="podium-score">0 pts</div>
+              </div>
+            </div>
+
+            <div class="podium-card" role="listitem" aria-label="2º lugar">
+              <img id="podium2Logo" class="podium-logo" src="" alt="Logo 2º" />
+              <div class="podium-info">
+                <div id="podium2Name" class="podium-name">—</div>
+                <div id="podium2Score" class="podium-score">0 pts</div>
+              </div>
+            </div>
+
+            <div class="podium-card" role="listitem" aria-label="3º lugar">
+              <img id="podium3Logo" class="podium-logo" src="" alt="Logo 3º" />
+              <div class="podium-info">
+                <div id="podium3Name" class="podium-name">—</div>
+                <div id="podium3Score" class="podium-score">0 pts</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PÔSTER -->
+        <section class="poster card" aria-labelledby="posterTitle">
+          <h2 id="posterTitle">Pôster TOP 3</h2>
+          <canvas id="posterCanvas" width="1080" height="1080" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,0.06)"></canvas>
+          <div class="editor-actions" style="margin-top:10px;">
+            <button id="btnDownloadPoster" class="btn outline" type="button">Baixar Pôster (PNG)</button>
+            <button id="btnSharePoster" class="btn ghost" type="button">Compartilhar Pôster</button>
+          </div>
+        </section>
+
+        <!-- TABELA DE PONTUAÇÃO -->
+        <section class="scoreboard card" id="scoreboard" aria-labelledby="scoreTitle">
+          <h2 id="scoreTitle">Tabela de Pontuação</h2>
+          <div class="legend muted">Regras: kill = 5 pts • Booya = 20 pts (cada vitória por queda)</div>
+
+          <div class="table-wrap" style="margin-top:8px;">
+            <table id="scoreTable" role="table" aria-describedby="scoreTitle">
+              <thead>
+                <tr>
+                  <th scope="col">Rank</th>
+                  <th scope="col">LINE / Equipe</th>
+                  <th scope="col">Posições (Quedas)</th>
+                  <th scope="col">Booyas</th>
+                  <th scope="col">Abates / Kills (Total)</th>
+                  <th scope="col">Score</th>
+                </tr>
+              </thead>
+              <tbody id="scoreBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </aside>
+    </section>
+
+    <footer class="footer card" role="contentinfo">
+      <span>© Tabela do XTreino da TOMAN ☯️ — Mobile e Desktop</span>
+    </footer>
+  </main>
+</body>
+</html>

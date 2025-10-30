@@ -1,0 +1,451 @@
+/* ============================================================
+   style.css — Tabela do XTreino TOMAN ☯️ (VERSÃO AVANÇADA)
+   - Design mais robusto e profissional
+   - Animações: entrada, hover, pulse, shimmer, pop, glow
+   - Microinterações em botões, cards, badges e tabela
+   - Responsivo e acessível
+   ============================================================ */
+
+/* Fonte (opcional): se quiser usar, mantenha; caso contrário remova */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+/* -------------------------
+   Variáveis de tema / animação
+   ------------------------- */
+:root{
+  --c-primary:   #ff0033;
+  --c-primary-2: #ff6a6a;
+  --c-accent:    #ffffff;
+  --c-bg:        #0b0b0d;
+  --c-card:      rgba(255,255,255,0.03);
+  --radius:      14px;
+  --glass:       rgba(255,255,255,0.035);
+  --muted:       rgba(255,255,255,0.62);
+  --muted-2:     rgba(255,255,255,0.42);
+  --shadow:      0 16px 40px rgba(0,0,0,0.6);
+  --gap:         16px;
+  --font-main:   "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  --max-width:   1220px;
+
+  /* animações */
+  --anim-fast:   150ms;
+  --anim-medium: 320ms;
+  --anim-slow:   650ms;
+  --easing:      cubic-bezier(.2,.9,.3,1);
+}
+
+/* -------------------------
+   Reset e base
+   ------------------------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; width: 100%; background: radial-gradient(1200px 400px at 10% 10%, rgba(255,0,51,0.03), transparent), var(--c-bg); color: var(--c-accent); font-family: var(--font-main); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body { padding: 22px; line-height: 1.38; font-size: 15px; }
+
+/* -------------------------
+   Container central
+   ------------------------- */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 20px;
+  transition: padding var(--anim-medium) var(--easing);
+}
+
+/* -------------------------
+   Header / Brand / Toolbar
+   ------------------------- */
+.app-header {
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));
+  padding: 14px;
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255,255,255,0.03);
+  animation: slideDown var(--anim-medium) var(--easing);
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #111;
+  background: linear-gradient(135deg, var(--c-primary), var(--c-primary-2));
+  box-shadow: 0 8px 28px rgba(255,0,51,0.08);
+  font-size: 18px;
+  transform: translateZ(0);
+  will-change: transform;
+  transition: transform var(--anim-medium) var(--easing);
+}
+.brand-icon:hover { transform: translateY(-4px) scale(1.02); }
+.app-header h1 { font-size: 18px; margin-bottom: 2px; letter-spacing: -0.2px; }
+.subtitle { font-size: 13px; color: var(--muted); }
+
+/* Toolbar */
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn {
+  appearance: none;
+  border: 0;
+  padding: 9px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--glass));
+  color: var(--c-accent);
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: transform var(--anim-fast) var(--easing), box-shadow var(--anim-fast) var(--easing), opacity var(--anim-fast) var(--easing);
+  position: relative;
+  overflow: hidden;
+}
+.btn:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.45); }
+.btn.neon {
+  background: linear-gradient(90deg, var(--c-primary), var(--c-primary-2));
+  color: #fff;
+  box-shadow: 0 12px 40px rgba(255,0,51,0.12), 0 2px 6px rgba(0,0,0,0.35) inset;
+}
+.btn.ghost { background: transparent; color: var(--c-primary); border: 1px solid rgba(255,255,255,0.06); }
+.btn.outline { background: transparent; border: 1px dashed rgba(255,255,255,0.06); }
+.btn.tiny { padding: 6px 8px; font-size: 13px; border-radius: 8px; }
+
+/* botão ripple pseudo-element ativo */
+.btn::after{
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 0; height: 0; opacity: 0;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+  transition: width .4s var(--easing), height .4s var(--easing), opacity .25s linear;
+  pointer-events: none;
+}
+.btn:active::after{
+  width: 220px; height: 220px; opacity: 1;
+  transition: width .32s var(--easing), height .32s var(--easing), opacity .6s ease-out;
+}
+
+/* -------------------------
+   Card padrão
+   ------------------------- */
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: var(--radius);
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: var(--shadow);
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  animation: floatUp .42s var(--easing);
+}
+.card h2 { color: var(--c-primary); font-size: 16px; margin-bottom: 8px; }
+
+/* -------------------------
+   Layout principal
+   ------------------------- */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+  margin-top: 10px;
+}
+
+/* Colunas */
+.col-main, .col-side { display: flex; flex-direction: column; gap: 14px; }
+
+/* -------------------------
+   Theme pickers
+   ------------------------- */
+.theme-pickers { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.theme-group { display:flex; flex-direction: column; gap: 6px; }
+
+/* -------------------------
+   Teams grid (12 slots)
+   ------------------------- */
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 6px;
+}
+
+/* Team card */
+.team-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.005));
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform var(--anim-medium) var(--easing), box-shadow var(--anim-medium) var(--easing);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  backface-visibility: hidden;
+  will-change: transform;
+  animation: cardAppear .52s var(--easing);
+}
+.team-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 18px 40px rgba(0,0,0,0.55); }
+
+/* small labels and rows */
+.team-card label { font-size: 12px; color: var(--muted); display:block; }
+.team-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Inputs */
+.team-card input[type="text"],
+.team-card input[type="number"],
+textarea {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.25);
+  color: var(--c-accent);
+  font-size: 14px;
+  min-height: 36px;
+  transition: box-shadow var(--anim-fast) var(--easing), transform var(--anim-fast) var(--easing);
+}
+.team-card input[type="text"]:focus,
+.team-card input[type="number"]:focus { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.45); }
+
+/* -------------------------
+   Logo input (compact)
+   ------------------------- */
+.logo-input { display: flex; align-items: center; gap: 8px; width: 100%; }
+.logo-input label.btn.tiny.ghost { padding: 6px 8px; font-size: 13px; border-radius: 8px; }
+.logo-preview {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45) inset;
+}
+
+/* small preview used inside scoreboard row (compact) */
+.scoreboard .logo-thumb { width: 28px; height: 28px; border-radius: 6px; object-fit: cover; margin-right: 8px; vertical-align: middle; }
+
+/* -------------------------
+   Quedas area (boxes dentro do team)
+   ------------------------- */
+.quedas-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.queda-box {
+  background: linear-gradient(180deg, rgba(255,255,255,0.007), rgba(255,255,255,0.003));
+  padding: 8px;
+  border-radius: 10px;
+  min-width: 148px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid rgba(255,255,255,0.02);
+  transition: transform var(--anim-fast) var(--easing);
+}
+.queda-box:hover { transform: translateY(-4px); }
+
+/* -------------------------
+   Editor actions
+   ------------------------- */
+.editor-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+/* -------------------------
+   Podio
+   ------------------------- */
+.podium-grid { display: flex; flex-direction: column; gap: 12px; }
+.podium-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.45);
+  transition: transform var(--anim-medium) var(--easing);
+}
+.podium-card:hover { transform: translateY(-6px); }
+.podium-logo { width: 66px; height: 66px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.06); }
+.podium-name { font-weight: 800; font-size: 15px; }
+.podium-score { color: var(--c-primary); font-weight: 800; font-size: 13px; }
+
+/* -------------------------
+   Poster (canvas)
+   ------------------------- */
+.poster canvas { width: 100%; height: auto; border-radius: 12px; background: #000; display: block; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+
+/* small hint for loading poster */
+.poster .loading {
+  width: 100%;
+  height: 360px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted);
+}
+
+/* -------------------------
+   Scoreboard / Tabela de Pontuação
+   ------------------------- */
+.table-wrap { overflow: auto; margin-top: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.02); }
+table { width: 100%; border-collapse: collapse; min-width: 560px; background: linear-gradient(180deg, rgba(0,0,0,0.01), transparent); }
+thead th {
+  text-align: left;
+  padding: 12px 14px;
+  color: var(--c-primary);
+  font-size: 13px;
+  position: sticky;
+  top: 0;
+  background: linear-gradient(180deg, rgba(11,11,13,0.98), rgba(11,11,13,0.94));
+  z-index: 3;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+tbody td { padding: 12px 14px; border-top: 1px solid rgba(255,255,255,0.02); font-size: 14px; vertical-align: middle; color: var(--c-accent); }
+tbody tr { transition: background-color var(--anim-medium) var(--easing), transform var(--anim-medium) var(--easing); }
+tbody tr:hover { background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); transform: translateY(-2px); }
+
+/* badge (rank) */
+.badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--c-primary), var(--c-primary-2));
+  color: #111;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 8px 20px rgba(255,0,51,0.08);
+  transform-origin: center;
+  animation: badgePop .42s var(--easing);
+}
+
+/* destaque de ranks (visual) */
+.rank-1 { background: linear-gradient(90deg, rgba(255,215,0,0.05), transparent); }
+.rank-2 { background: linear-gradient(90deg, rgba(192,192,192,0.035), transparent); }
+.rank-3 { background: linear-gradient(90deg, rgba(205,127,50,0.03), transparent); }
+
+/* Colunas específicas (ajuste responsivo) */
+td.center { text-align:center; }
+td.right { text-align:right; }
+
+/* tabela zebra leve */
+tbody tr:nth-child(2n) { background: transparent; }
+
+/* -------------------------
+   Times resumo (fallback)
+   ------------------------- */
+.times-resumo { margin-top: 10px; color: var(--muted); font-size: 13px; }
+
+/* -------------------------
+   Footer
+   ------------------------- */
+.footer { margin-top: 12px; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* -------------------------
+   Focus / acessibilidade
+   ------------------------- */
+input:focus, .btn:focus { outline: none; box-shadow: 0 0 0 6px rgba(255,0,51,0.06); border-color: rgba(255,0,51,0.16); }
+
+/* -------------------------
+   Pequenas melhorias visuais
+   ------------------------- */
+.resumo-table tbody tr:hover,
+.times-table tbody tr:hover { background: rgba(255,255,255,0.01); }
+
+/* -------------------------
+   Scrollbar estilizado (opcional)
+   ------------------------- */
+::-webkit-scrollbar { height: 8px; width: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--c-primary), var(--c-primary-2)); border-radius: 8px; }
+
+/* -------------------------
+   Modo sem animações (quando ativado pelo JS)
+   ------------------------- */
+.anim-off * { animation: none !important; transition: none !important; }
+
+/* -------------------------
+   Responsividade
+   ------------------------- */
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .teams-grid { grid-template-columns: 1fr; }
+  .col-side { order: 2; }
+  .poster canvas { height: 480px; }
+}
+
+@media (max-width: 640px) {
+  .brand-icon { width: 44px; height: 44px; }
+  .logo-preview { width: 48px; height: 48px; }
+  .queda-box { min-width: 120px; }
+  .team-card { padding: 10px; }
+  body { padding: 12px; font-size: 14px; }
+  thead th, tbody td { padding: 8px 10px; font-size: 13px; }
+  .podium-logo { width: 48px; height: 48px; }
+  .poster canvas { height: 360px; }
+}
+
+/* -------------------------
+   Keyframes / Animações
+   ------------------------- */
+@keyframes floatUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes cardAppear {
+  0% { transform: translateY(8px) scale(.998); opacity: 0; filter: blur(4px); }
+  60% { opacity: 1; filter: blur(0); transform: translateY(-2px) scale(1.003); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes badgePop {
+  0% { transform: scale(.6); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes slideDown {
+  from { transform: translateY(-12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: -160% 0; }
+  100% { background-position: 160% 0; }
+}
+@keyframes badgeGlow {
+  0% { box-shadow: 0 8px 18px rgba(255,0,51,0.05); }
+  50% { box-shadow: 0 18px 38px rgba(255,0,51,0.12); transform: translateY(-2px); }
+  100% { box-shadow: 0 8px 18px rgba(255,0,51,0.05); transform: translateY(0); }
+}
+
+/* aplicar shimmer aos headers como opção (ex.: .shimmer) */
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.02) 100%);
+  background-size: 400% 100%;
+  animation: shimmer 2.8s linear infinite;
+}
+
+/* efeito sutil de glow para botões neon */
+.btn.neon:hover { animation: badgeGlow 1.6s ease-in-out; }
+
+/* animação pulsante discreta para destaque (ex.: ao enviar) */
+.pulse {
+  animation: pulseAnim 1.6s ease-in-out infinite;
+}
+@keyframes pulseAnim {
+  0% { transform: scale(1); box-shadow: 0 8px 20px rgba(255,0,51,0.06); }
+  50% { transform: scale(1.02); box-shadow: 0 22px 46px rgba(255,0,51,0.14); }
+  100% { transform: scale(1); box-shadow: 0 8px 20px rgba(255,0,51,0.06); }
+}
+
+/* -------------------------
+   Utilitários rápidos
+   ------------------------- */
+.hidden { display: none !important; }
+.center { display:flex; align-items:center; justify-content:center; }
+.text-muted { color: var(--muted); font-size: 13px; }
+
+/* End of file */
