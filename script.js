@@ -646,7 +646,7 @@ async function gerarPosterTop3(){
   ctx.font = '400 12px Arial';
   ctx.fillStyle = hexToRgba(footerTextColor, 0.66);
   ctx.textAlign = 'left';
-  ctx.fillText('XTREINO TOMAN • Tabela gerada automaticamente', 20, canvas.height - 10);
+  ctx.fillText('', 20, canvas.height - 10);
   ctx.restore();
 }
 
@@ -817,3 +817,4 @@ document.addEventListener('DOMContentLoaded', function(){
   const out = porId('timesResumo');
   if(out) out.innerHTML = montarTabelaTimesResumo(ESTADO.times);
 });
+
