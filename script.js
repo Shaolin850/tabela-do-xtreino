@@ -621,9 +621,33 @@ async function gerarPosterTop3(){
     ctx.fillText(`${t.score || 0} pts • ${t.totalKills || 0} kills • ${t.booyas || 0} booyas`, s.x, s.y + s.size/2 + (s.rank===1?110:76));
   }
 
-  ctx.fillStyle = headerTextColor;
-  ctx.font = '600 18px Arial';
-  ctx.fillText(preset.name + ' — XTREINO TOMAN ☯️', canvas.width/2, canvas.height - 40);
+  // ----- RODAPÉ DO PÔSTER: frase solicitada -----
+  const footerPhrase = 'Parabéns aos Campeões do Xtreino da TOMAN ☯️!';
+  // fundo sutil para legibilidade
+  ctx.save();
+  ctx.globalAlpha = 0.22;
+  ctx.fillStyle = '#000000';
+  const footerHeight = 68;
+  ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
+  ctx.restore();
+
+  // texto do rodapé (centralizado)
+  ctx.save();
+  ctx.textAlign = 'center';
+  // cor do texto contrastante em relação ao fundo do poster
+  const footerTextColor = headerTextColor; // já determina contraste contra bg principal
+  ctx.fillStyle = footerTextColor;
+  ctx.font = '700 20px Arial';
+  ctx.fillText(footerPhrase, canvas.width/2, canvas.height - 26);
+  ctx.restore();
+
+  // (Opcional) pequena linha de atribuição/credit no canto inferior esquerdo
+  ctx.save();
+  ctx.font = '400 12px Arial';
+  ctx.fillStyle = hexToRgba(footerTextColor, 0.66);
+  ctx.textAlign = 'left';
+  ctx.fillText('XTREINO TOMAN • Tabela gerada automaticamente', 20, canvas.height - 10);
+  ctx.restore();
 }
 
 /* placeholder de logo (quando não tiver imagem) */
@@ -681,7 +705,7 @@ async function exportarPDF(tryShare = false){
   pdf.setFillColor('#c8102e');
   pdf.rect(margin, margin, contentW, 64, 'F');
   pdf.setFontSize(20); pdf.setTextColor('#ffffff'); pdf.setFont('helvetica','bold');
-  pdf.text('TABELA DE PONTUAÇÃO — XTREINO Da TOMAN', margin + contentW/2, margin + 42, {align:'center'});
+  pdf.text('TABELA DE PONTUAÇÃO — XTREINO DA TOMAN', margin + contentW/2, margin + 42, {align:'center'});
 
   let y = margin + 96;
   pdf.setFontSize(10);
@@ -741,7 +765,7 @@ async function exportarPDF(tryShare = false){
 
   pdf.setFontSize(9);
   pdf.setTextColor('#999999');
-  pdf.text('Gerado por Tabela XTreino TOMAN.', margin, H + 30);
+  pdf.text('Gerado por Tabela XTreino TOMAN.', margin, H - 20);
 
   const blob = pdf.output('blob');
   if (tryShare){
