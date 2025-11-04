@@ -703,7 +703,7 @@ async function exportarPDF(tryShare = false){
 
   const linhas = ESTADO.times.map(t=>{
     const c = calcularPontuacaoTime(t);
-    return {...t, totalKills: c.totalKills, score: c.score, booyas: c.booyas, pontosPorPosicao: c.pontosPorPosicao};
+    return {...t, totalKills: c.totalKills, score: c.score, booyas: c.booyas, pontosBooya: c.pontosBooya};
   }).sort((a,b)=> (b.score||0)-(a.score||0) || (b.totalKills||0)-(a.totalKills||0) || (b.booyas||0)-(a.booyas||0) );
 
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
@@ -728,21 +728,19 @@ async function exportarPDF(tryShare = false){
   pdf.setFillColor('#0b0b0b');
   pdf.rect(margin, y-12, contentW, 22, 'F');
 
-  // colunas (inclui pontos por posição)
+  // colunas (inclui kills)
   const col = {
     rankW: 38,
     nameW: Math.round(contentW*0.22),
     qW: Math.max(38, Math.round(contentW*0.12/4)),
     booyaW: 60,
-    pontosPosW: 64,
     killsW: 60,
     scoreW: 64
   };
   col.nameX = margin + col.rankW + 8;
   col.qStartX = col.nameX + col.nameW + 8;
   col.booyaX = col.qStartX + col.qW*4 + 8;
-  col.pontosPosX = col.booyaX + col.booyaW + 8;
-  col.killsX = col.pontosPosX + col.pontosPosW + 8;
+  col.killsX = col.booyaX + col.booyaW + 8;
   col.scoreX = col.killsX + col.killsW + 8;
 
   // cabeçalho das colunas
@@ -751,7 +749,6 @@ async function exportarPDF(tryShare = false){
   pdf.setTextColor('#ffffff');
   for (let i=0;i<NUM_QUEDAS;i++) pdf.text(`Q${i+1}`, col.qStartX + i*col.qW, y+6);
   pdf.text('Booyas', col.booyaX, y+6);
-  pdf.text('Pts Pos', col.pontosPosX, y+6);
   pdf.text('Kills', col.killsX, y+6);
   pdf.text('Score', col.scoreX, y+6);
 
@@ -771,7 +768,6 @@ async function exportarPDF(tryShare = false){
       pdf.text(v, col.qStartX + q*col.qW, y + 6);
     }
     pdf.text(String(t.booyas || 0), col.booyaX, y + 6);
-    pdf.text(String(t.pontosPorPosicao || 0), col.pontosPosX, y + 6);
     pdf.text(String(t.totalKills || 0), col.killsX, y + 6);
     pdf.text(String(t.score || 0), col.scoreX, y + 6);
 
@@ -795,6 +791,7 @@ async function exportarPDF(tryShare = false){
   }
   pdf.save(`tabela_xtreino_${Date.now()}.pdf`);
 }
+
 
 /* ========== Export PNG (simples) ========== */
 async function exportarPNG(){
