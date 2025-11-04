@@ -1,14 +1,14 @@
 /* script.js — Versão final: totalKills adicionado na UI, PDF e timesResumo
    + Geração INFINITA de temas para o pôster (presets + gerador aleatório)
    - Comentários e nomes em Português
-   - Score = totalKills*5 + pontosBooya (sem bônus por posição final)
+   - Score = totalKills*5 + pontos por posição (TOP1=20, TOP2=15, TOP3=10)
    - Pôster TOP3, export PDF (preto/vermelho/branco)
 */
 
 /* ========== Estado e constantes ========== */
 const ESTADO = {
   animacoes: true,
-  times: [], // {id, nome, posQ:[q1..q4], killsQ:[k1..k4], booyas, pontosBooya, totalKills, score, logoDataUrl}
+  times: [], // {id, nome, posQ:[q1..q4], killsQ:[k1..k4], booyas, pontosBooya, pontosPorPosicao, totalKills, score, logoDataUrl}
   tema: { primaria:'#00e7ff', secundaria:'#ff004c', bg:'#0a0b10', texto:'#e8f1ff' },
   estiloPoster: null
 };
@@ -83,7 +83,8 @@ function inicializarTimes(){
     posQ: Array.from({length: NUM_QUEDAS}).map(()=>''),   // posições por queda (Q1..Q4)
     killsQ: Array.from({length: NUM_QUEDAS}).map(()=>0),  // kills por queda
     booyas: 0,
-    pontosBooya: 0,
+    pontosBooya: 0,         // alias para pontos por posição (mantido por compatibilidade)
+    pontosPorPosicao: 0,    // soma dos pontos por posição (20/15/10)
     totalKills: 0,
     score: 0,
     logoDataUrl: ''
@@ -93,7 +94,7 @@ function inicializarTimes(){
 /* ========== Vincular eventos UI ========== */
 function ligarEventosUI(){
   // Tema
-  const btnApply = porId('btnApplyTheme'); if(btnApply) btnApply.addEventListener('click', ()=>{
+  const btnApply = porId('btnApplyTheme'); if(btnApply) btnApply.addEventListener('click', ()=> {
     const tema = {
       primaria: porId('colorPrimary').value,
       secundaria: porId('colorSecondary').value,
@@ -119,7 +120,7 @@ function ligarEventosUI(){
   // Toggle animações
   const btnToggleAnim = porId('btnToggleAnim');
   if (btnToggleAnim){
-    btnToggleAnim.addEventListener('click', ()=>{
+    btnToggleAnim.addEventListener('click', ()=> {
       ESTADO.animacoes = !ESTADO.animacoes;
       document.documentElement.classList.toggle('anim-off', !ESTADO.animacoes);
       btnToggleAnim.textContent = `Animações: ${ESTADO.animacoes? 'ON':'OFF'}`;
@@ -153,7 +154,7 @@ function renderizarEditorTimes(){
   if(!container) return;
   container.innerHTML = '';
 
-  ESTADO.times.forEach((time, idx)=>{
+  ESTADO.times.forEach((time, idx)=> {
     const card = document.createElement('div');
     card.className = 'team-card';
 
@@ -206,7 +207,9 @@ function renderizarEditorTimes(){
       el.addEventListener('click', ()=> {
         if (idx==null) return;
         ESTADO.times[idx].booyas = (parseInt(ESTADO.times[idx].booyas,10)||0) + 1;
-        ESTADO.times[idx].pontosBooya = (ESTADO.times[idx].booyas||0) * 20;
+        // pontos por posição recalculados centralmente; aqui atualizamos alias para feedback imediato
+        ESTADO.times[idx].pontosBooya = (ESTADO.times[idx].booyas || 0) * 20;
+        ESTADO.times[idx].pontosPorPosicao = ESTADO.times[idx].pontosBooya;
         renderizarEditorTimes(); calcularEExibir();
       });
       return;
@@ -216,13 +219,14 @@ function renderizarEditorTimes(){
         if (idx==null) return;
         ESTADO.times[idx].booyas = Math.max(0, (parseInt(ESTADO.times[idx].booyas,10)||0) - 1);
         ESTADO.times[idx].pontosBooya = (ESTADO.times[idx].booyas||0) * 20;
+        ESTADO.times[idx].pontosPorPosicao = ESTADO.times[idx].pontosBooya;
         renderizarEditorTimes(); calcularEExibir();
       });
       return;
     }
 
     if (field === 'logo'){
-      el.addEventListener('change', (e)=>{
+      el.addEventListener('change', (e)=> {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
@@ -246,6 +250,7 @@ function renderizarEditorTimes(){
         case 'booyas':
           ESTADO.times[idx].booyas = (val === '') ? 0 : Math.max(0, parseInt(val,10)||0);
           ESTADO.times[idx].pontosBooya = (ESTADO.times[idx].booyas || 0) * 20;
+          ESTADO.times[idx].pontosPorPosicao = ESTADO.times[idx].pontosBooya;
           break;
         case 'posQ':
           if (q!=null){
@@ -253,7 +258,7 @@ function renderizarEditorTimes(){
             e.target.value = ESTADO.times[idx].posQ[q] || '';
             // recalcula booyas a partir das posQ (top1 em cada queda)
             ESTADO.times[idx].booyas = ESTADO.times[idx].posQ.reduce((s,p)=> s + ((parseInt(p,10)===1)?1:0), 0);
-            ESTADO.times[idx].pontosBooya = (ESTADO.times[idx].booyas || 0) * 20;
+            // pontos por posição serão recalculados centralmente em calcularEExibir()
           }
           break;
         case 'killsQ':
@@ -267,19 +272,41 @@ function renderizarEditorTimes(){
   });
 }
 
-/* ========== Cálculo de pontuação (SEM bônus por posição final) ========== */
+/* ========== Cálculo de pontuação (com bônus por posição TOP1/TOP2/TOP3) ========== */
 /* Regras:
+   - cada abate/kills = 5 pontos
+   - TOP1 (booya) por queda = 20 pontos
+   - TOP2 por queda = 15 pontos
+   - TOP3 por queda = 10 pontos
    - totalKills = soma(killsQ1..killsQ4)
-   - booyas = contagem de posQX == 1
-   - pontosBooya = booyas * 20
-   - score = totalKills * 5 + pontosBooya
+   - pontosPorPosicao = soma dos pontos por posição (20/15/10) em cada queda
+   - score = totalKills * 5 + pontosPorPosicao
 */
 function calcularPontuacaoTime(time){
+  // total de kills (soma dos kills por queda)
   const totalKills = Array.isArray(time.killsQ) ? time.killsQ.reduce((s,n)=> s + (parseInt(n,10)||0), 0) : 0;
-  const booyas = Array.isArray(time.posQ) ? time.posQ.reduce((s,p)=> s + ((parseInt(p,10)===1)?1:0), 0) : (parseInt(time.booyas,10)||0);
-  const pontosBooya = booyas * 20;
-  const score = totalKills * 5 + pontosBooya;
-  return { totalKills, score, booyas, pontosBooya };
+
+  // contagem de booyas (posições 1) e cálculo de pontos por posição (20/15/10)
+  let booyas = 0;
+  let pontosPorPosicao = 0;
+  if (Array.isArray(time.posQ)){
+    for (let i=0; i<time.posQ.length; i++){
+      const p = parseInt(time.posQ[i], 10);
+      if (p === 1){ booyas += 1; pontosPorPosicao += 20; }
+      else if (p === 2) { pontosPorPosicao += 15; }
+      else if (p === 3) { pontosPorPosicao += 10; }
+      // posições além do top3 não dão pontos de posição
+    }
+  } else {
+    // fallback caso posQ não seja array: usa time.booyas se fornecido manualmente (assume booyas = top1)
+    booyas = parseInt(time.booyas,10) || 0;
+    pontosPorPosicao = booyas * 20;
+  }
+
+  // score final: kills * 5 + pontos por posição
+  const score = (totalKills * 5) + pontosPorPosicao;
+
+  return { totalKills, score, booyas, pontosPorPosicao };
 }
 
 function calcularEExibir(){
@@ -287,15 +314,16 @@ function calcularEExibir(){
   ESTADO.times.forEach(t=>{
     if(!Array.isArray(t.killsQ)) t.killsQ = Array.from({length: NUM_QUEDAS}).map(()=>0);
     if(!Array.isArray(t.posQ)) t.posQ = Array.from({length: NUM_QUEDAS}).map(()=>'');
+
     // recalcula booyas a partir das posQ (top1 em cada queda)
     t.booyas = t.posQ.reduce((s,p)=> s + ((parseInt(p,10)===1)?1:0), 0);
-    t.pontosBooya = (t.booyas || 0) * 20;
 
-    // salva totalKills/score diretamente no objeto time
+    // calcula totalKills, pontos por posição e score via função centralizada
     const c = calcularPontuacaoTime(t);
     t.totalKills = c.totalKills;
     t.score = c.score;
-    t.pontosBooya = c.pontosBooya;
+    t.pontosPorPosicao = c.pontosPorPosicao;
+    t.pontosBooya = c.pontosPorPosicao; // alias para compatibilidade com usos antigos
   });
 
   const linhas = ESTADO.times.map(t=>({
@@ -303,7 +331,8 @@ function calcularEExibir(){
     totalKills: t.totalKills || 0,
     score: t.score || 0,
     booyas: t.booyas || 0,
-    pontosBooya: t.pontosBooya || 0
+    pontosBooya: t.pontosBooya || 0,
+    pontosPorPosicao: t.pontosPorPosicao || 0
   }));
 
   // Ordenação: score desc, totalKills desc, booyas desc, id asc
@@ -324,7 +353,7 @@ function calcularEExibir(){
   }
 }
 
-/* ========== Render tabela (exibe posQ1..Q4, booyas, totalKills e score) ========== */
+/* ========== Render tabela (exibe posQ1..Q4, booyas, pontosPorPosicao, totalKills e score) ========== */
 function renderizarTabelaPontuacao(linhas){
   const tbody = porId('scoreBody');
   if(!tbody) return;
@@ -341,6 +370,7 @@ function renderizarTabelaPontuacao(linhas){
       <td>${escapeHtml(t.nome || `LINE ${t.id}`)}</td>
       <td style="white-space:nowrap;">${posQTexto}</td>
       <td style="text-align:center;">${t.booyas ?? 0}</td>
+      <td style="text-align:center;">${t.pontosPorPosicao ?? 0}</td>
       <td style="text-align:center;">${t.totalKills ?? 0}</td>
       <td style="text-align:right;"><strong>${t.score ?? 0}</strong></td>
     `;
@@ -362,8 +392,8 @@ function definirPodio(slot, t){
     nomeEl.textContent = '—'; scoreEl.textContent = '0 pts'; logoEl.src = ''; logoEl.style.visibility = 'hidden'; return;
   }
   nomeEl.textContent = t.nome || `LINE ${t.id}`;
-  // exibe kills também no podio
-  scoreEl.textContent = `${t.score ?? 0} pts • ${t.totalKills ?? 0} kills • ${t.booyas || 0} booyas`;
+  // exibe kills e pontos por posição também no podio
+  scoreEl.textContent = `${t.score ?? 0} pts • ${t.totalKills ?? 0} kills • ${t.booyas || 0} booyas • ${t.pontosPorPosicao || 0} ptsPos`;
   if(t.logoDataUrl){ logoEl.src = t.logoDataUrl; logoEl.style.visibility = 'visible'; }
   else { logoEl.src = ''; logoEl.style.visibility = 'hidden'; }
 }
@@ -393,14 +423,11 @@ function getPosterPreset(){
   return POSTER_PRESETS[Math.floor(Math.random()*POSTER_PRESETS.length)];
 }
 
-/* Gera um preset aleatório com paleta balanceada e efeito aleatório
-   - objetivo: variedade infinita, boa legibilidade e estética */
+/* Gera um preset aleatório com paleta balanceada e efeito aleatório */
 function gerarPresetAleatorio(){
-  // escolha de esquema base por tonalidade
   const schemes = ['cool','warm','neon','muted','pastel','mono'];
   const scheme = randomFrom(schemes);
 
-  // gerar cores HSL coerentes
   let baseHue;
   if (scheme === 'cool') baseHue = randomInt(180,260);
   else if (scheme === 'warm') baseHue = randomInt(0,60);
@@ -409,24 +436,18 @@ function gerarPresetAleatorio(){
   else if (scheme === 'pastel') baseHue = randomInt(0,360);
   else baseHue = randomInt(0,360);
 
-  // saturations and lightness tuned by scheme
   const sat = scheme === 'pastel' ? randomInt(35,55) : (scheme === 'muted' ? randomInt(18,36) : randomInt(60,95));
   const primLight = scheme === 'pastel' ? randomInt(65,85) : randomInt(40,65);
   const secLight = Math.max(20, primLight - randomInt(12,32));
 
-  // primary and secondary colors
   const prim = hslToHex((baseHue + randomInt(-12,12) + 360)%360, sat, primLight);
   const sec = hslToHex((baseHue + randomInt(30,80))%360, Math.max(30, sat - randomInt(0,20)), Math.max(30, secLight - randomInt(2,10)));
 
-  // background gradient: dois tons mais escuros para profundidade
   const bgHue = (baseHue + randomInt(-30,30) + 360)%360;
-  const bg1 = hslToHex(bgHue, Math.max(12, sat-20), Math.max(4, primLight - 48)); // escuro
-  const bg2 = hslToHex((bgHue + randomInt(10,50))%360, Math.max(8, sat-30), Math.max(6, primLight - 36)); // variação leve
+  const bg1 = hslToHex(bgHue, Math.max(12, sat-20), Math.max(4, primLight - 48));
+  const bg2 = hslToHex((bgHue + randomInt(10,50))%360, Math.max(8, sat-30), Math.max(6, primLight - 36));
 
-  // efeito aleatório
   const effect = randomFrom(POSTER_EFFECTS);
-
-  // nome gerado (único-ish)
   const name = `Aleatório ${String(Math.floor(Math.random()*9000)+1000)} • ${scheme}`;
 
   return {
@@ -448,7 +469,7 @@ async function gerarPosterTop3(){
 
   const linhas = ESTADO.times.map(t=>{
     const c = calcularPontuacaoTime(t);
-    return {...t, totalKills: c.totalKills, score: c.score, booyas: c.booyas};
+    return {...t, totalKills: c.totalKills, score: c.score, booyas: c.booyas, pontosPorPosicao: c.pontosPorPosicao};
   }).sort((a,b)=> (b.score||0)-(a.score||0) || (b.totalKills||0)-(a.totalKills||0) );
 
   const top = [linhas[0], linhas[1], linhas[2]].filter(Boolean);
@@ -460,11 +481,10 @@ async function gerarPosterTop3(){
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // escolher cor do texto com base no primeiro tom de fundo para garantir legibilidade
   const headerTextColor = getContrasteTexto(preset.pal.bg[0]);
   const subtitleColor = preset.pal.prim;
 
-  // efeitos variados
+  // efeitos variados (mantidos)
   if (preset.effect === 'rays'){
     ctx.save(); ctx.globalAlpha = 0.08;
     for(let i=0;i<22;i++){
@@ -537,7 +557,6 @@ async function gerarPosterTop3(){
     }
     ctx.globalAlpha = 1;
   } else if (preset.effect === 'glitch'){
-    // linhas coloridas horizontais
     for(let i=0;i<40;i++){
       ctx.fillStyle = randomFrom([preset.pal.prim, preset.pal.sec, '#ffffff', '#000000']);
       const h = 2 + Math.random()*8;
@@ -623,7 +642,6 @@ async function gerarPosterTop3(){
 
   // ----- RODAPÉ DO PÔSTER: frase solicitada -----
   const footerPhrase = 'Parabéns aos Campeões do Xtreino da TOMAN ☯️!';
-  // fundo sutil para legibilidade
   ctx.save();
   ctx.globalAlpha = 0.22;
   ctx.fillStyle = '#000000';
@@ -631,17 +649,14 @@ async function gerarPosterTop3(){
   ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
   ctx.restore();
 
-  // texto do rodapé (centralizado)
   ctx.save();
   ctx.textAlign = 'center';
-  // cor do texto contrastante em relação ao fundo do poster
-  const footerTextColor = headerTextColor; // já determina contraste contra bg principal
+  const footerTextColor = headerTextColor;
   ctx.fillStyle = footerTextColor;
   ctx.font = '700 20px Arial';
   ctx.fillText(footerPhrase, canvas.width/2, canvas.height - 26);
   ctx.restore();
 
-  // (Opcional) pequena linha de atribuição/credit no canto inferior esquerdo
   ctx.save();
   ctx.font = '400 12px Arial';
   ctx.fillStyle = hexToRgba(footerTextColor, 0.66);
@@ -688,7 +703,7 @@ async function exportarPDF(tryShare = false){
 
   const linhas = ESTADO.times.map(t=>{
     const c = calcularPontuacaoTime(t);
-    return {...t, totalKills: c.totalKills, score: c.score, booyas: c.booyas, pontosBooya: c.pontosBooya};
+    return {...t, totalKills: c.totalKills, score: c.score, booyas: c.booyas, pontosPorPosicao: c.pontosPorPosicao};
   }).sort((a,b)=> (b.score||0)-(a.score||0) || (b.totalKills||0)-(a.totalKills||0) || (b.booyas||0)-(a.booyas||0) );
 
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
@@ -713,19 +728,21 @@ async function exportarPDF(tryShare = false){
   pdf.setFillColor('#0b0b0b');
   pdf.rect(margin, y-12, contentW, 22, 'F');
 
-  // colunas (inclui kills)
+  // colunas (inclui pontos por posição)
   const col = {
     rankW: 38,
     nameW: Math.round(contentW*0.22),
     qW: Math.max(38, Math.round(contentW*0.12/4)),
     booyaW: 60,
+    pontosPosW: 64,
     killsW: 60,
     scoreW: 64
   };
   col.nameX = margin + col.rankW + 8;
   col.qStartX = col.nameX + col.nameW + 8;
   col.booyaX = col.qStartX + col.qW*4 + 8;
-  col.killsX = col.booyaX + col.booyaW + 8;
+  col.pontosPosX = col.booyaX + col.booyaW + 8;
+  col.killsX = col.pontosPosX + col.pontosPosW + 8;
   col.scoreX = col.killsX + col.killsW + 8;
 
   // cabeçalho das colunas
@@ -734,6 +751,7 @@ async function exportarPDF(tryShare = false){
   pdf.setTextColor('#ffffff');
   for (let i=0;i<NUM_QUEDAS;i++) pdf.text(`Q${i+1}`, col.qStartX + i*col.qW, y+6);
   pdf.text('Booyas', col.booyaX, y+6);
+  pdf.text('Pts Pos', col.pontosPosX, y+6);
   pdf.text('Kills', col.killsX, y+6);
   pdf.text('Score', col.scoreX, y+6);
 
@@ -753,6 +771,7 @@ async function exportarPDF(tryShare = false){
       pdf.text(v, col.qStartX + q*col.qW, y + 6);
     }
     pdf.text(String(t.booyas || 0), col.booyaX, y + 6);
+    pdf.text(String(t.pontosPorPosicao || 0), col.pontosPosX, y + 6);
     pdf.text(String(t.totalKills || 0), col.killsX, y + 6);
     pdf.text(String(t.score || 0), col.scoreX, y + 6);
 
@@ -786,22 +805,24 @@ async function exportarPNG(){
   const a = document.createElement('a'); a.href = url; a.download = `tabela_xtreino_toman_${Date.now()}.png`; a.click();
 }
 
-/* ========== Resumo timesResumo (agora inclui Total Kills) ========== */
+/* ========== Resumo timesResumo (agora inclui Total Kills e Pontos por Posição) ========== */
 function montarTabelaTimesResumo(times){
   if(!Array.isArray(times)) return '<div class="muted">Nenhum time configurado.</div>';
   let html = '<table class="times-table"><thead><tr><th>Line</th>';
   for(let i=0;i<NUM_QUEDAS;i++) html += `<th>Q${i+1}</th>`;
-  html += '<th>Booyas</th><th>Kills</th></tr></thead><tbody>';
+  html += '<th>Booyas</th><th>Pts Pos</th><th>Kills</th></tr></thead><tbody>';
   times.forEach(t=>{
     // garante que totalKills esteja calculado
     const c = calcularPontuacaoTime(t);
     const totalKills = (t.totalKills !== undefined) ? t.totalKills : c.totalKills;
+    const pontosPos = (t.pontosPorPosicao !== undefined) ? t.pontosPorPosicao : c.pontosPorPosicao;
     html += `<tr><td>${escapeHtml(t.nome||`LINE ${t.id}`)}</td>`;
     for(let i=0;i<NUM_QUEDAS;i++){
       const pos = (t.posQ && t.posQ[i] != null) ? t.posQ[i] : '-';
       html += `<td style="white-space:nowrap;">${pos}</td>`;
     }
     html += `<td>${t.booyas||0}</td>`;
+    html += `<td style="text-align:center;">${pontosPos}</td>`;
     html += `<td style="text-align:center;">${totalKills}</td></tr>`;
   });
   html += '</tbody></table>';
@@ -817,4 +838,3 @@ document.addEventListener('DOMContentLoaded', function(){
   const out = porId('timesResumo');
   if(out) out.innerHTML = montarTabelaTimesResumo(ESTADO.times);
 });
-
