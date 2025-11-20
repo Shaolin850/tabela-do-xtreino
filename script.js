@@ -1,14 +1,13 @@
-/* script.js — Versão final: totalKills adicionado na UI, PDF e timesResumo
-   + Geração INFINITA de temas para o pôster (presets + gerador aleatório)
-   - Comentários e nomes em Português
-   - Score = totalKills*5 + pontos por posição (TOP1=20, TOP2=15, TOP3=10)
-   - Pôster TOP3, export PDF (preto/vermelho/branco)
+/* script.js — Versão atualizada: 
+   - Somente o fundo do pôster muda com temas aleatórios
+   - Todas as letras na cor branca para melhor visualização
+   - Coroa de rei MAIOR adicionada no campeão (1º lugar)
 */
 
 /* ========== Estado e constantes ========== */
 const ESTADO = {
   animacoes: true,
-  times: [], // {id, nome, posQ:[q1..q4], killsQ:[k1..k4], booyas, pontosBooya, pontosPorPosicao, totalKills, score, logoDataUrl}
+  times: [],
   tema: { primaria:'#00e7ff', secundaria:'#ff004c', bg:'#0a0b10', texto:'#e8f1ff' },
   estiloPoster: null
 };
@@ -35,9 +34,7 @@ function randomFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function randomInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 function randomBetween(a,b){ return a + Math.random()*(b-a); }
 
-/* Converte HSL para HEX */
 function hslToHex(h,s,l){
-  // h: 0-360, s/l: 0-100
   s /= 100; l /= 100;
   const k = n => (n + h/30) % 12;
   const a = s * Math.min(l, 1 - l);
@@ -50,23 +47,6 @@ function hslToHex(h,s,l){
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-/* Converte HEX para luminância relativa (0..1) */
-function getLuminance(hex){
-  const c = (hex||'#000000').replace('#','');
-  const r = parseInt(c.substring(0,2),16)/255;
-  const g = parseInt(c.substring(2,4),16)/255;
-  const b = parseInt(c.substring(4,6),16)/255;
-  const srgb = [r,g,b].map(v => (v <= 0.03928) ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
-  return 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
-}
-
-/* Retorna '#ffffff' ou '#111111' baseado no contraste */
-function getContrasteTexto(hex){
-  const lum = getLuminance(hex);
-  return lum > 0.5 ? '#111111' : '#ffffff';
-}
-
-/* já existente: hexToRgba (mantive para efeitos) */
 function hexToRgba(hex, alpha){
   const c = (hex||'#000000').replace('#','');
   const r = parseInt(c.substring(0,2),16);
@@ -75,16 +55,72 @@ function hexToRgba(hex, alpha){
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-/* ========== Inicializar 12 slots (sem posicao final) ========== */
+/* ========== Função para desenhar coroa MAIOR no campeão ========== */
+function drawCrown(ctx, x, y, size, color = '#FFD700') {
+  ctx.save();
+  ctx.translate(x, y);
+  
+  // Corpo principal da coroa - AUMENTADO
+  ctx.fillStyle = color;
+  ctx.strokeStyle = '#FFA500';
+  ctx.lineWidth = 3; // Linha mais grossa para destacar
+  
+  // Desenhar a coroa com 5 pontas - MAIOR
+  ctx.beginPath();
+  const spikeHeight = size * 0.5; // Pontas mais altas
+  const baseWidth = size * 1.0;   // Base mais larga
+  
+  // Começar do lado esquerdo
+  ctx.moveTo(-baseWidth/2, spikeHeight/2);
+  
+  // Desenhar as 5 pontas
+  for(let i = 0; i < 5; i++) {
+    // Pico da ponta
+    ctx.lineTo(-baseWidth/2 + (baseWidth/4) * i, -spikeHeight/2);
+    // Vale entre as pontas
+    if(i < 4) {
+      ctx.lineTo(-baseWidth/2 + (baseWidth/4) * (i + 0.5), spikeHeight/4);
+    }
+  }
+  
+  // Completar o retângulo base
+  ctx.lineTo(baseWidth/2, spikeHeight/2);
+  ctx.lineTo(-baseWidth/2, spikeHeight/2);
+  
+  ctx.fill();
+  ctx.stroke();
+  
+  // Adicionar detalhes - joias nas pontas MAIORES
+  ctx.fillStyle = '#FF6B6B';
+  for(let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    const jewelX = -baseWidth/2 + (baseWidth/4) * i;
+    const jewelY = -spikeHeight/3;
+    ctx.arc(jewelX, jewelY, size * 0.12, 0, Math.PI * 2); // Joias maiores
+    ctx.fill();
+  }
+
+  // Adicionar brilho extra
+  ctx.fillStyle = '#FFF9C4';
+  ctx.globalAlpha = 0.3;
+  ctx.beginPath();
+  ctx.arc(0, -spikeHeight/6, size * 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  
+  ctx.restore();
+}
+
+/* ========== Inicializar times ========== */
 function inicializarTimes(){
   ESTADO.times = Array.from({length: NUM_TIMES}).map((_,i)=>({
     id: i+1,
     nome: '',
-    posQ: Array.from({length: NUM_QUEDAS}).map(()=>''),   // posições por queda (Q1..Q4)
-    killsQ: Array.from({length: NUM_QUEDAS}).map(()=>0),  // kills por queda
+    posQ: Array.from({length: NUM_QUEDAS}).map(()=>''),
+    killsQ: Array.from({length: NUM_QUEDAS}).map(()=>0),
     booyas: 0,
-    pontosBooya: 0,         // alias para pontos por posição (mantido por compatibilidade)
-    pontosPorPosicao: 0,    // soma dos pontos por posição (20/15/10)
+    pontosBooya: 0,
+    pontosPorPosicao: 0,
     totalKills: 0,
     score: 0,
     logoDataUrl: ''
@@ -93,7 +129,6 @@ function inicializarTimes(){
 
 /* ========== Vincular eventos UI ========== */
 function ligarEventosUI(){
-  // Tema
   const btnApply = porId('btnApplyTheme'); if(btnApply) btnApply.addEventListener('click', ()=> {
     const tema = {
       primaria: porId('colorPrimary').value,
@@ -105,7 +140,6 @@ function ligarEventosUI(){
   });
   const btnRandom = porId('btnRandomTheme'); if(btnRandom) btnRandom.addEventListener('click', temaAleatorio);
 
-  // Export / Poster
   const btnExportPNG = porId('btnExportPNG'); if(btnExportPNG) btnExportPNG.addEventListener('click', exportarPNG);
   const btnExportPDF = porId('btnExportPDF'); if(btnExportPDF) btnExportPDF.addEventListener('click', ()=>exportarPDF(false));
   const btnSharePDF = porId('btnSharePDF'); if(btnSharePDF) btnSharePDF.addEventListener('click', ()=>exportarPDF(true));
@@ -113,11 +147,9 @@ function ligarEventosUI(){
   const btnDownloadPoster = porId('btnDownloadPoster'); if(btnDownloadPoster) btnDownloadPoster.addEventListener('click', baixarPoster);
   const btnSharePoster = porId('btnSharePoster'); if(btnSharePoster) btnSharePoster.addEventListener('click', compartilharPoster);
 
-  // Editor actions
   const btnClear = porId('btnClear'); if(btnClear) btnClear.addEventListener('click', ()=>{ inicializarTimes(); renderizarEditorTimes(); calcularEExibir(); });
   const btnCompute = porId('btnCompute'); if(btnCompute) btnCompute.addEventListener('click', ()=>{ calcularEExibir(); });
 
-  // Toggle animações
   const btnToggleAnim = porId('btnToggleAnim');
   if (btnToggleAnim){
     btnToggleAnim.addEventListener('click', ()=> {
@@ -137,6 +169,7 @@ function aplicarTema(tema, persist=false){
   document.documentElement.style.setProperty('--c-text', tema.texto);
   if(persist) localStorage.setItem('xt_theme', JSON.stringify(tema));
 }
+
 function temaAleatorio(){
   const presets = [
     {primaria:'#00e7ff', secundaria:'#ff6a8a', bg:'#06070a', texto:'#e8f1ff'},
@@ -148,7 +181,7 @@ function temaAleatorio(){
   aplicarTema(presets[Math.floor(Math.random()*presets.length)], true);
 }
 
-/* ========== Render do Editor (12 slots) — sem campo 'Posição final' ========== */
+/* ========== Render do Editor ========== */
 function renderizarEditorTimes(){
   const container = porId('teamsContainer');
   if(!container) return;
@@ -161,7 +194,6 @@ function renderizarEditorTimes(){
     let html = '';
     html += `<div class="team-row"><label>Slot ${time.id}</label><input type="text" placeholder="Nome da LINE/Equipe" value="${escapeHtml(time.nome||'')}" data-idx="${idx}" data-field="nome" /></div>`;
 
-    // Booyas manual (ainda disponível mas é recalculado automaticamente a partir das posQ)
     html += `<div class="team-row" style="align-items:center;">
       <label style="width:70px">Booyas</label>
       <div style="display:flex;align-items:center;gap:6px;">
@@ -171,7 +203,6 @@ function renderizarEditorTimes(){
       </div>
     </div>`;
 
-    // Quedas (Posição e Kills por queda)
     html += `<div style="margin-top:8px;font-size:13px;color:var(--muted)">Quedas (Posição / Kills)</div>`;
     html += `<div class="quedas-row">`;
     for(let q=0;q<NUM_QUEDAS;q++){
@@ -185,7 +216,6 @@ function renderizarEditorTimes(){
     }
     html += `</div>`;
 
-    // logo manual
     html += `<div class="team-row" style="margin-top:8px;">
       <div class="logo-input">
         <label class="btn tiny ghost" for="logo-${idx}">Logo</label>
@@ -198,7 +228,6 @@ function renderizarEditorTimes(){
     container.appendChild(card);
   });
 
-  // vincular eventos aos inputs e botões
   container.querySelectorAll('input, button').forEach(el=>{
     const idx = el.dataset.idx !== undefined ? parseInt(el.dataset.idx,10) : null;
     const field = el.dataset.field;
@@ -207,7 +236,6 @@ function renderizarEditorTimes(){
       el.addEventListener('click', ()=> {
         if (idx==null) return;
         ESTADO.times[idx].booyas = (parseInt(ESTADO.times[idx].booyas,10)||0) + 1;
-        // pontos por posição recalculados centralmente; aqui atualizamos alias para feedback imediato
         ESTADO.times[idx].pontosBooya = (ESTADO.times[idx].booyas || 0) * 20;
         ESTADO.times[idx].pontosPorPosicao = ESTADO.times[idx].pontosBooya;
         renderizarEditorTimes(); calcularEExibir();
@@ -256,9 +284,7 @@ function renderizarEditorTimes(){
           if (q!=null){
             ESTADO.times[idx].posQ[q] = (val === '') ? '' : Math.max(1, Math.min(NUM_TIMES, parseInt(val,10)||'' ));
             e.target.value = ESTADO.times[idx].posQ[q] || '';
-            // recalcula booyas a partir das posQ (top1 em cada queda)
             ESTADO.times[idx].booyas = ESTADO.times[idx].posQ.reduce((s,p)=> s + ((parseInt(p,10)===1)?1:0), 0);
-            // pontos por posição serão recalculados centralmente em calcularEExibir()
           }
           break;
         case 'killsQ':
@@ -272,21 +298,10 @@ function renderizarEditorTimes(){
   });
 }
 
-/* ========== Cálculo de pontuação (com bônus por posição TOP1/TOP2/TOP3) ========== */
-/* Regras:
-   - cada abate/kills = 5 pontos
-   - TOP1 (booya) por queda = 20 pontos
-   - TOP2 por queda = 15 pontos
-   - TOP3 por queda = 10 pontos
-   - totalKills = soma(killsQ1..killsQ4)
-   - pontosPorPosicao = soma dos pontos por posição (20/15/10) em cada queda
-   - score = totalKills * 5 + pontosPorPosicao
-*/
+/* ========== Cálculo de pontuação ========== */
 function calcularPontuacaoTime(time){
-  // total de kills (soma dos kills por queda)
   const totalKills = Array.isArray(time.killsQ) ? time.killsQ.reduce((s,n)=> s + (parseInt(n,10)||0), 0) : 0;
 
-  // contagem de booyas (posições 1) e cálculo de pontos por posição (20/15/10)
   let booyas = 0;
   let pontosPorPosicao = 0;
   if (Array.isArray(time.posQ)){
@@ -295,35 +310,29 @@ function calcularPontuacaoTime(time){
       if (p === 1){ booyas += 1; pontosPorPosicao += 20; }
       else if (p === 2) { pontosPorPosicao += 15; }
       else if (p === 3) { pontosPorPosicao += 10; }
-      // posições além do top3 não dão pontos de posição
     }
   } else {
-    // fallback caso posQ não seja array: usa time.booyas se fornecido manualmente (assume booyas = top1)
     booyas = parseInt(time.booyas,10) || 0;
     pontosPorPosicao = booyas * 20;
   }
 
-  // score final: kills * 5 + pontos por posição
   const score = (totalKills * 5) + pontosPorPosicao;
 
   return { totalKills, score, booyas, pontosPorPosicao };
 }
 
 function calcularEExibir(){
-  // atualizar derivados e garantir arrays corretos
   ESTADO.times.forEach(t=>{
     if(!Array.isArray(t.killsQ)) t.killsQ = Array.from({length: NUM_QUEDAS}).map(()=>0);
     if(!Array.isArray(t.posQ)) t.posQ = Array.from({length: NUM_QUEDAS}).map(()=>'');
 
-    // recalcula booyas a partir das posQ (top1 em cada queda)
     t.booyas = t.posQ.reduce((s,p)=> s + ((parseInt(p,10)===1)?1:0), 0);
 
-    // calcula totalKills, pontos por posição e score via função centralizada
     const c = calcularPontuacaoTime(t);
     t.totalKills = c.totalKills;
     t.score = c.score;
     t.pontosPorPosicao = c.pontosPorPosicao;
-    t.pontosBooya = c.pontosPorPosicao; // alias para compatibilidade com usos antigos
+    t.pontosBooya = c.pontosPorPosicao;
   });
 
   const linhas = ESTADO.times.map(t=>({
@@ -335,7 +344,6 @@ function calcularEExibir(){
     pontosPorPosicao: t.pontosPorPosicao || 0
   }));
 
-  // Ordenação: score desc, totalKills desc, booyas desc, id asc
   linhas.sort((a,b)=>{
     if ((b.score||0) !== (a.score||0)) return (b.score||0) - (a.score||0);
     if ((b.totalKills||0) !== (a.totalKills||0)) return (b.totalKills||0) - (a.totalKills||0);
@@ -346,14 +354,13 @@ function calcularEExibir(){
   renderizarTabelaPontuacao(linhas);
   renderizarPodio(linhas);
 
-  // atualiza timesResumo (fallback) se existir
   const out = porId('timesResumo');
   if (out) {
     out.innerHTML = montarTabelaTimesResumo(ESTADO.times);
   }
 }
 
-/* ========== Render tabela (exibe posQ1..Q4, booyas, pontosPorPosicao, totalKills e score) ========== */
+/* ========== Render tabela ========== */
 function renderizarTabelaPontuacao(linhas){
   const tbody = porId('scoreBody');
   if(!tbody) return;
@@ -383,6 +390,7 @@ function renderizarPodio(sortedLinhas){
   const t1 = sortedLinhas[0] || {}, t2 = sortedLinhas[1] || {}, t3 = sortedLinhas[2] || {};
   definirPodio('1', t1); definirPodio('2', t2); definirPodio('3', t3);
 }
+
 function definirPodio(slot, t){
   const nomeEl = porId(`podium${slot}Name`);
   const scoreEl = porId(`podium${slot}Score`);
@@ -392,38 +400,31 @@ function definirPodio(slot, t){
     nomeEl.textContent = '—'; scoreEl.textContent = '0 pts'; logoEl.src = ''; logoEl.style.visibility = 'hidden'; return;
   }
   nomeEl.textContent = t.nome || `LINE ${t.id}`;
-  // exibe kills e pontos por posição também no podio
   scoreEl.textContent = `${t.score ?? 0} pts • ${t.totalKills ?? 0} kills • ${t.booyas || 0} booyas • ${t.pontosPorPosicao || 0} ptsPos`;
   if(t.logoDataUrl){ logoEl.src = t.logoDataUrl; logoEl.style.visibility = 'visible'; }
   else { logoEl.src = ''; logoEl.style.visibility = 'hidden'; }
 }
 
-/* ========== Pôster TOP 3 (presets expandidos + gerador infinito) ========== */
-
-/* Presets manuais (alguns exemplos, mantidos para variedade) */
+/* ========== Pôster TOP 3 - ATUALIZADO ========== */
 const POSTER_PRESETS = [
-  { name:'Vermelho Néon', pal:{bg:['#0b0507','#3a0008'], prim:'#ff3b3b', sec:'#ffd7d7'}, effect:'rays' },
-  { name:'Neon Aqua', pal:{bg:['#001219','#002b36'], prim:'#00f0ff', sec:'#9bf6ff'}, effect:'glow' },
-  { name:'Sunset', pal:{bg:['#2b0707','#3a1a1a'], prim:'#ffb142', sec:'#ff6b6b'}, effect:'confetti' },
-  { name:'Emerald', pal:{bg:['#041412','#073527'], prim:'#7efc82', sec:'#bfffe0'}, effect:'particles' },
-  { name:'Royal', pal:{bg:['#0a0412','#2b072e'], prim:'#caa2ff', sec:'#ffd7ff'}, effect:'minimal' },
-  { name:'Midnight Stars', pal:{bg:['#03031a','#07133a'], prim:'#9bd3ff', sec:'#ffd7ff'}, effect:'stars' },
-  { name:'Cyberpunk', pal:{bg:['#100014','#2b001f'], prim:'#ff00e6', sec:'#00ffe6'}, effect:'glow' },
-  { name:'Desert', pal:{bg:['#2b1a07','#3a2a0a'], prim:'#ffd27a', sec:'#ff9f6b'}, effect:'particles' },
-  { name:'Ocean Mist', pal:{bg:['#021826','#003544'], prim:'#6ff3ff', sec:'#bfefff'}, effect:'aurora' }
+  { name:'Vermelho Néon', pal:{bg:['#0b0507','#3a0008']}, effect:'rays' },
+  { name:'Neon Aqua', pal:{bg:['#001219','#002b36']}, effect:'glow' },
+  { name:'Sunset', pal:{bg:['#2b0707','#3a1a1a']}, effect:'confetti' },
+  { name:'Emerald', pal:{bg:['#041412','#073527']}, effect:'particles' },
+  { name:'Royal', pal:{bg:['#0a0412','#2b072e']}, effect:'minimal' },
+  { name:'Midnight Stars', pal:{bg:['#03031a','#07133a']}, effect:'stars' },
+  { name:'Cyberpunk', pal:{bg:['#100014','#2b001f']}, effect:'glow' },
+  { name:'Desert', pal:{bg:['#2b1a07','#3a2a0a']}, effect:'particles' },
+  { name:'Ocean Mist', pal:{bg:['#021826','#003544']}, effect:'aurora' }
 ];
 
-/* Efeitos disponíveis para pôster — o gerador aleatório usará estes */
 const POSTER_EFFECTS = ['rays','glow','confetti','particles','minimal','stars','aurora','geometric','bokeh','glitch','wave'];
 
-/* Função que retorna um preset — escolhe entre presets fixos e presets gerados aleatoriamente */
 function getPosterPreset(){
-  // 55% chance gerar aleatório, 45% chance usar um preset existente
   if (Math.random() < 0.55) return gerarPresetAleatorio();
   return POSTER_PRESETS[Math.floor(Math.random()*POSTER_PRESETS.length)];
 }
 
-/* Gera um preset aleatório com paleta balanceada e efeito aleatório */
 function gerarPresetAleatorio(){
   const schemes = ['cool','warm','neon','muted','pastel','mono'];
   const scheme = randomFrom(schemes);
@@ -438,10 +439,6 @@ function gerarPresetAleatorio(){
 
   const sat = scheme === 'pastel' ? randomInt(35,55) : (scheme === 'muted' ? randomInt(18,36) : randomInt(60,95));
   const primLight = scheme === 'pastel' ? randomInt(65,85) : randomInt(40,65);
-  const secLight = Math.max(20, primLight - randomInt(12,32));
-
-  const prim = hslToHex((baseHue + randomInt(-12,12) + 360)%360, sat, primLight);
-  const sec = hslToHex((baseHue + randomInt(30,80))%360, Math.max(30, sat - randomInt(0,20)), Math.max(30, secLight - randomInt(2,10)));
 
   const bgHue = (baseHue + randomInt(-30,30) + 360)%360;
   const bg1 = hslToHex(bgHue, Math.max(12, sat-20), Math.max(4, primLight - 48));
@@ -452,12 +449,12 @@ function gerarPresetAleatorio(){
 
   return {
     name,
-    pal: { bg: [bg1, bg2], prim, sec },
+    pal: { bg: [bg1, bg2] },
     effect
   };
 }
 
-/* Função principal do pôster reusando getPosterPreset() */
+/* ========== FUNÇÃO PRINCIPAL DO PÔSTER ATUALIZADA ========== */
 async function gerarPosterTop3(){
   const canvas = porId('posterCanvas');
   if(!canvas) return;
@@ -474,17 +471,20 @@ async function gerarPosterTop3(){
 
   const top = [linhas[0], linhas[1], linhas[2]].filter(Boolean);
 
-  // background gradiente
+  // Background com tema aleatório
   const grad = ctx.createLinearGradient(0,0,0,canvas.height);
   grad.addColorStop(0, preset.pal.bg[0]);
   grad.addColorStop(1, preset.pal.bg[1] || preset.pal.bg[0]);
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  const headerTextColor = getContrasteTexto(preset.pal.bg[0]);
-  const subtitleColor = preset.pal.prim;
+  // *** ATUALIZAÇÃO: TODOS OS TEXTOS EM BRANCO ***
+  const textColor = '#ffffff';
+  const headerTextColor = '#ffffff';
+  const subtitleColor = '#ffffff';
+  const statsColor = '#ffffff';
 
-  // efeitos variados (mantidos)
+  // Efeitos de fundo (mantidos)
   if (preset.effect === 'rays'){
     ctx.save(); ctx.globalAlpha = 0.08;
     for(let i=0;i<22;i++){
@@ -493,18 +493,18 @@ async function gerarPosterTop3(){
       ctx.moveTo(canvas.width/2, canvas.height*0.68);
       ctx.lineTo(canvas.width/2 + Math.cos(ang)*canvas.width*1.6, canvas.height*0.68 + Math.sin(ang)*canvas.height*1.3);
       ctx.lineWidth = 90;
-      ctx.strokeStyle = preset.pal.prim;
+      ctx.strokeStyle = '#ffffff';
       ctx.stroke();
     }
     ctx.restore();
   } else if (preset.effect === 'glow'){
     const radial = ctx.createRadialGradient(canvas.width/2, canvas.height*0.32, 30, canvas.width/2, canvas.height*0.32, canvas.width*0.9);
-    radial.addColorStop(0, hexToRgba(preset.pal.prim, 0.28));
+    radial.addColorStop(0, 'rgba(255,255,255,0.28)');
     radial.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = radial; ctx.fillRect(0,0,canvas.width,canvas.height);
   } else if (preset.effect === 'confetti'){
     for(let i=0;i<140;i++){
-      ctx.fillStyle = randomFrom([preset.pal.prim, preset.pal.sec, '#ffffff']);
+      ctx.fillStyle = randomFrom(['#ffffff', '#ffd700', '#ff6b6b']);
       const w = 6 + Math.random()*12;
       const x = Math.random()*canvas.width;
       const y = Math.random()*canvas.height*0.8;
@@ -514,7 +514,7 @@ async function gerarPosterTop3(){
     for(let i=0;i<120;i++){
       ctx.beginPath();
       ctx.globalAlpha = 0.04 + Math.random()*0.18;
-      ctx.fillStyle = randomFrom([preset.pal.prim, preset.pal.sec, '#ffffff']);
+      ctx.fillStyle = randomFrom(['#ffffff', '#ffd700', '#ff6b6b']);
       ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, 6+Math.random()*26, 0, Math.PI*2);
       ctx.fill();
     }
@@ -531,8 +531,8 @@ async function gerarPosterTop3(){
     }
   } else if (preset.effect === 'aurora'){
     const g = ctx.createLinearGradient(0, canvas.height*0.1, canvas.width, canvas.height*0.55);
-    g.addColorStop(0, hexToRgba(preset.pal.prim, 0.12));
-    g.addColorStop(0.5, hexToRgba(preset.pal.sec, 0.08));
+    g.addColorStop(0, 'rgba(255,255,255,0.12)');
+    g.addColorStop(0.5, 'rgba(255,215,0,0.08)');
     g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g; ctx.fillRect(0, canvas.height*0.05, canvas.width, canvas.height*0.8);
   } else if (preset.effect === 'geometric'){
@@ -542,7 +542,7 @@ async function gerarPosterTop3(){
       const size = 120 + Math.random()*280;
       const x = Math.random()*canvas.width;
       const y = Math.random()*canvas.height;
-      ctx.fillStyle = randomFrom([preset.pal.prim, preset.pal.sec, '#ffffff']);
+      ctx.fillStyle = randomFrom(['#ffffff', '#ffd700', '#ff6b6b']);
       ctx.fillRect(x - size/2, y - size/2, size, size);
     }
     ctx.restore();
@@ -551,21 +551,21 @@ async function gerarPosterTop3(){
       ctx.beginPath();
       const r = 20 + Math.random()*120;
       ctx.globalAlpha = 0.03 + Math.random()*0.22;
-      ctx.fillStyle = randomFrom([preset.pal.prim, preset.pal.sec, '#ffffff']);
+      ctx.fillStyle = randomFrom(['#ffffff', '#ffd700', '#ff6b6b']);
       ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, r, 0, Math.PI*2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
   } else if (preset.effect === 'glitch'){
     for(let i=0;i<40;i++){
-      ctx.fillStyle = randomFrom([preset.pal.prim, preset.pal.sec, '#ffffff', '#000000']);
+      ctx.fillStyle = randomFrom(['#ffffff', '#ffd700', '#000000']);
       const h = 2 + Math.random()*8;
       ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*40 + 20, h);
     }
   } else if (preset.effect === 'wave'){
     ctx.save();
     ctx.globalAlpha = 0.08;
-    ctx.fillStyle = preset.pal.sec;
+    ctx.fillStyle = '#ffffff';
     for(let i=0;i<6;i++){
       ctx.beginPath();
       const amp = 16 + i*10;
@@ -581,13 +581,13 @@ async function gerarPosterTop3(){
     ctx.restore();
   }
 
-  // header
+  // Header - TODOS OS TEXTOS EM BRANCO
   ctx.textAlign = 'center';
   ctx.fillStyle = headerTextColor;
   ctx.font = 'bold 64px Arial';
   ctx.fillText('TOP 3', canvas.width/2, 100);
   ctx.font = '600 20px Arial';
-  ctx.fillStyle = preset.pal.prim;
+  ctx.fillStyle = subtitleColor;
   ctx.fillText('XTREINO TOMAN — RESULTADOS', canvas.width/2, 132);
 
   const slots = [
@@ -606,7 +606,7 @@ async function gerarPosterTop3(){
     ctx.save();
     ctx.beginPath();
     ctx.arc(s.x, s.y, s.size/2 + 20, 0, Math.PI*2);
-    ctx.fillStyle = hexToRgba(preset.pal.prim, 0.08);
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
     ctx.fill();
     ctx.closePath();
     ctx.restore();
@@ -631,16 +631,31 @@ async function gerarPosterTop3(){
       drawLogoPlaceholder(ctx, s);
     }
 
-    ctx.textAlign = 'center';
-    ctx.fillStyle = headerTextColor;
+    // *** ADICIONAR COROA MAIOR NO CAMPEÃO (1º LUGAR) ***
+    
+    
+    // Título "CAMPEÃO" apenas para o primeiro colocado
+    if (s.rank === 1) {
+      ctx.fillStyle = '#FFD700'; // Dourado para o título CAMPEÃO
+      ctx.font = `900 42px Arial`;
+      ctx.fillText('CAMPEÃO', s.x, s.y + s.size/2 + 50);
+    }
+
+    // Nome da equipe - BRANCO
+    ctx.fillStyle = textColor;
     ctx.font = `800 ${s.rank===1?36:22}px Arial`;
-    ctx.fillText((t.nome || `LINE ${t.id}`).toUpperCase(), s.x, s.y + s.size/2 + (s.rank===1?70:48));
-    ctx.fillStyle = preset.pal.sec;
+    ctx.fillText((t.nome || `LINE ${t.id}`).toUpperCase(), s.x, s.y + s.size/2 + (s.rank===1?90:48));
+    
+    // Estatísticas - BRANCO
+    ctx.fillStyle = statsColor;
     ctx.font = `700 ${s.rank===1?28:18}px Arial`;
-    ctx.fillText(`${t.score || 0} pts • ${t.totalKills || 0} kills • ${t.booyas || 0} booyas`, s.x, s.y + s.size/2 + (s.rank===1?110:76));
+    
+    // Texto mais detalhado com informações
+    const statsText = `${t.score || 0} pts • ${t.totalKills || 0} kills • ${t.booyas || 0} booyas`;
+    ctx.fillText(statsText, s.x, s.y + s.size/2 + (s.rank===1?130:76));
   }
 
-  // ----- RODAPÉ DO PÔSTER: frase solicitada -----
+  // Rodapé - TEXTO EM BRANCO
   const footerPhrase = 'Parabéns aos Campeões do Xtreino da TOMAN ☯️!';
   ctx.save();
   ctx.globalAlpha = 0.22;
@@ -651,21 +666,19 @@ async function gerarPosterTop3(){
 
   ctx.save();
   ctx.textAlign = 'center';
-  const footerTextColor = headerTextColor;
-  ctx.fillStyle = footerTextColor;
+  ctx.fillStyle = '#ffffff';
   ctx.font = '700 20px Arial';
   ctx.fillText(footerPhrase, canvas.width/2, canvas.height - 26);
   ctx.restore();
 
   ctx.save();
   ctx.font = '400 12px Arial';
-  ctx.fillStyle = hexToRgba(footerTextColor, 0.66);
+  ctx.fillStyle = 'rgba(255,255,255,0.66)';
   ctx.textAlign = 'left';
   ctx.fillText('', 20, canvas.height - 10);
   ctx.restore();
 }
 
-/* placeholder de logo (quando não tiver imagem) */
 function drawLogoPlaceholder(ctx, s){
   ctx.save();
   ctx.beginPath();
@@ -686,6 +699,7 @@ function baixarPoster(){
   const url = canvas.toDataURL('image/png');
   const a = document.createElement('a'); a.href = url; a.download = `poster_top3_xtreino_${Date.now()}.png`; a.click();
 }
+
 async function compartilharPoster(){
   const canvas = porId('posterCanvas'); if(!canvas) return;
   const blob = await new Promise(r=> canvas.toBlob(r,'image/png'));
@@ -696,7 +710,7 @@ async function compartilharPoster(){
   } else { baixarPoster(); }
 }
 
-/* ========== Exportar PDF personalizado (preto, vermelho, branco) ========== */
+/* ========== Exportar PDF ========== */
 async function exportarPDF(tryShare = false){
   const { jsPDF } = window.jspdf || {};
   if(!jsPDF){ alert('jsPDF não carregado'); return; }
@@ -712,11 +726,9 @@ async function exportarPDF(tryShare = false){
   const margin = 28;
   const contentW = W - margin*2;
 
-  // fundo preto
   pdf.setFillColor('#000000');
   pdf.rect(0,0,W,H,'F');
 
-  // header vermelho
   pdf.setFillColor('#c8102e');
   pdf.rect(margin, margin, contentW, 64, 'F');
   pdf.setFontSize(20); pdf.setTextColor('#ffffff'); pdf.setFont('helvetica','bold');
@@ -728,7 +740,6 @@ async function exportarPDF(tryShare = false){
   pdf.setFillColor('#0b0b0b');
   pdf.rect(margin, y-12, contentW, 22, 'F');
 
-  // colunas (inclui kills)
   const col = {
     rankW: 38,
     nameW: Math.round(contentW*0.22),
@@ -743,7 +754,6 @@ async function exportarPDF(tryShare = false){
   col.killsX = col.booyaX + col.booyaW + 8;
   col.scoreX = col.killsX + col.killsW + 8;
 
-  // cabeçalho das colunas
   pdf.setTextColor('#c8102e'); pdf.text('Rank', margin + 6, y+6);
   pdf.text('LINE / Equipe', col.nameX, y+6);
   pdf.setTextColor('#ffffff');
@@ -792,8 +802,7 @@ async function exportarPDF(tryShare = false){
   pdf.save(`tabela_xtreino_${Date.now()}.pdf`);
 }
 
-
-/* ========== Export PNG (simples) ========== */
+/* ========== Export PNG ========== */
 async function exportarPNG(){
   const node = porId('scoreboard');
   if(!node) return;
@@ -802,14 +811,13 @@ async function exportarPNG(){
   const a = document.createElement('a'); a.href = url; a.download = `tabela_xtreino_toman_${Date.now()}.png`; a.click();
 }
 
-/* ========== Resumo timesResumo (agora inclui Total Kills e Pontos por Posição) ========== */
+/* ========== Resumo timesResumo ========== */
 function montarTabelaTimesResumo(times){
   if(!Array.isArray(times)) return '<div class="muted">Nenhum time configurado.</div>';
   let html = '<table class="times-table"><thead><tr><th>Line</th>';
   for(let i=0;i<NUM_QUEDAS;i++) html += `<th>Q${i+1}</th>`;
   html += '<th>Booyas</th><th>Pts Pos</th><th>Kills</th></tr></thead><tbody>';
   times.forEach(t=>{
-    // garante que totalKills esteja calculado
     const c = calcularPontuacaoTime(t);
     const totalKills = (t.totalKills !== undefined) ? t.totalKills : c.totalKills;
     const pontosPos = (t.pontosPorPosicao !== undefined) ? t.pontosPorPosicao : c.pontosPorPosicao;
@@ -826,11 +834,9 @@ function montarTabelaTimesResumo(times){
   return html;
 }
 
-/* Expor funções úteis para debug / uso externo */
 window.renderizarEditorTimes = renderizarEditorTimes;
 window.calcularEExibir = calcularEExibir;
 
-/* Inicializa timesResumo se existir (fallback) */
 document.addEventListener('DOMContentLoaded', function(){
   const out = porId('timesResumo');
   if(out) out.innerHTML = montarTabelaTimesResumo(ESTADO.times);
