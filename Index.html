@@ -17,11 +17,11 @@
   <main class="container">
     <!-- HEADER -->
     <header class="app-header" role="banner">
-      <div class="brand" aria-hidden="false">
-        <span class="brand-icon" aria-hidden="true">TM</span>
+      <div class="brand">
+        <span class="brand-icon">TM</span>
         <div>
           <h1>Tabela do XTreino da TOMAN</h1>
-          <div class="subtitle small muted">Gerencie 12 LINEs — posições das quedas, booyas e kills por queda</div>
+          <div class="subtitle small muted">Gerencie 12 LINEs — posições das quedas, booyas e kills</div>
         </div>
       </div>
 
@@ -30,14 +30,12 @@
         <button id="btnToggleAnim" class="btn ghost" type="button">Animações: ON</button>
         <button id="btnExportPNG" class="btn outline" type="button">Exportar PNG</button>
         <button id="btnExportPDF" class="btn outline" type="button">Exportar PDF</button>
-        <button id="btnSharePDF" class="btn ghost" type="button">Compartilhar PDF</button>
         <button id="btnPosterTop3" class="btn neon" type="button">Pôster TOP 3</button>
       </nav>
     </header>
 
     <!-- LAYOUT PRINCIPAL -->
     <section class="layout" role="main">
-
       <!-- COLUNA ESQUERDA -->
       <div class="col-main">
         <!-- Tema -->
@@ -60,7 +58,7 @@
               <label for="colorText">Texto</label>
               <input type="color" id="colorText" value="#e8f1ff"/>
             </div>
-            <button id="btnApplyTheme" class="btn tiny" type="button">Aplicar Tema</button>
+            <button id="btnApplyTheme" class="btn tiny" type="button">Aplicar</button>
           </div>
         </section>
 
@@ -68,32 +66,29 @@
         <section class="editor card" aria-labelledby="editorTitle">
           <h2 id="editorTitle">Cadastro das LINEs (12 slots)</h2>
           <p class="muted">
-            Preencha apenas: <strong>Nome da equipe</strong> e, para cada queda, informe a <strong>posição</strong> e as <strong>kills</strong>.
-            O sistema calcula automaticamente as <strong>booyas</strong> (vitórias por queda), o <strong>total de kills</strong> e o <strong>score</strong>.
-            (Não é mais necessário informar uma posição final separada — tudo é calculado a partir das quedas.)
+            Preencha: <strong>nome da equipe</strong> + <strong>posição</strong> e <strong>kills</strong> de cada queda.
+            O cálculo de booyas, kills totais e score é automático.
           </p>
 
-          <!-- Container preenchido dinamicamente pelo JS -->
           <div id="teamsContainer" class="teams-grid" aria-live="polite"></div>
 
-          <div class="editor-actions" style="margin-top:10px;">
+          <div class="editor-actions">
             <button id="btnClear" class="btn ghost" type="button">Limpar Tudo</button>
             <button id="btnCompute" class="btn neon" type="button">Calcular Pontuação</button>
           </div>
 
-          <!-- Resumo rápido (fallback / debug) -->
-          <div id="timesResumo" class="times-resumo" aria-live="polite" style="margin-top:12px;"></div>
+          <div id="timesResumo" class="times-resumo" aria-live="polite"></div>
         </section>
       </div>
 
       <!-- COLUNA DIREITA -->
-      <aside class="col-side" aria-label="Painel direito">
+      <aside class="col-side" aria-label="Resultados">
         <!-- PÓDIO -->
         <section class="podium card" aria-labelledby="podioTitle">
           <h2 id="podioTitle">Pódio (Top 3)</h2>
           <div class="podium-grid" role="list">
             <div class="podium-card" role="listitem" aria-label="1º lugar">
-              <img id="podium1Logo" class="podium-logo" src="" alt="Logo 1º" />
+              <img id="podium1Logo" class="podium-logo" src="" alt="1º lugar"/>
               <div class="podium-info">
                 <div id="podium1Name" class="podium-name">—</div>
                 <div id="podium1Score" class="podium-score">0 pts</div>
@@ -101,7 +96,7 @@
             </div>
 
             <div class="podium-card" role="listitem" aria-label="2º lugar">
-              <img id="podium2Logo" class="podium-logo" src="" alt="Logo 2º" />
+              <img id="podium2Logo" class="podium-logo" src="" alt="2º lugar"/>
               <div class="podium-info">
                 <div id="podium2Name" class="podium-name">—</div>
                 <div id="podium2Score" class="podium-score">0 pts</div>
@@ -109,7 +104,7 @@
             </div>
 
             <div class="podium-card" role="listitem" aria-label="3º lugar">
-              <img id="podium3Logo" class="podium-logo" src="" alt="Logo 3º" />
+              <img id="podium3Logo" class="podium-logo" src="" alt="3º lugar"/>
               <div class="podium-info">
                 <div id="podium3Name" class="podium-name">—</div>
                 <div id="podium3Score" class="podium-score">0 pts</div>
@@ -121,27 +116,29 @@
         <!-- PÔSTER -->
         <section class="poster card" aria-labelledby="posterTitle">
           <h2 id="posterTitle">Pôster TOP 3</h2>
-          <canvas id="posterCanvas" width="1080" height="1080" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,0.06)"></canvas>
-          <div class="editor-actions" style="margin-top:10px;">
-            <button id="btnDownloadPoster" class="btn outline" type="button">Baixar Pôster (PNG)</button>
-            <button id="btnSharePoster" class="btn ghost" type="button">Compartilhar Pôster</button>
+          <div class="poster-wrapper">
+            <canvas id="posterCanvas" width="1080" height="1080" aria-label="Pôster TOP 3"></canvas>
+          </div>
+          <div class="editor-actions poster-actions">
+            <button id="btnGeneratePoster" class="btn neon" type="button">Gerar Pôster</button>
+            <button id="btnDownloadPoster" class="btn outline" type="button">Baixar PNG</button>
           </div>
         </section>
 
         <!-- TABELA DE PONTUAÇÃO -->
         <section class="scoreboard card" id="scoreboard" aria-labelledby="scoreTitle">
           <h2 id="scoreTitle">Tabela de Pontuação</h2>
-          <div class="legend muted">Regras: kill = 5 pts • TOP 1 Booya = 20 pts • TOP2 = 15 pts • TOP 3 = 10 pts</div>
+          <div class="legend muted">Regras: kill = 5 pts • 1º = 20 pts • 2º = 15 pts • 3º = 10 pts</div>
 
-          <div class="table-wrap" style="margin-top:8px;">
+          <div class="table-wrap">
             <table id="scoreTable" role="table" aria-describedby="scoreTitle">
               <thead>
                 <tr>
                   <th scope="col">Rank</th>
                   <th scope="col">LINE / Equipe</th>
-                  <th scope="col">Posições (Quedas)</th>
+                  <th scope="col">Posições</th>
                   <th scope="col">Booyas</th>
-                  <th scope="col">Abates / Kills (Total)</th>
+                  <th scope="col">Kills Totais</th>
                   <th scope="col">Score</th>
                 </tr>
               </thead>
@@ -153,7 +150,7 @@
     </section>
 
     <footer class="footer card" role="contentinfo">
-      <span>© Tabela do XTreino da TOMAN ☯️ — Mobile e Desktop</span>
+      <span>© Tabela do XTreino da TOMAN ☯️ — Funciona em celular, tablet e PC</span>
     </footer>
   </main>
 </body>
