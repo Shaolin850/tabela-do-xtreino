@@ -1,6 +1,6 @@
 /* ============================================================
-   Tabela do XTreino TOMAN ☯️ - CSS PROFISSIONAL
-   Design moderno, responsivo e acessível
+   Tabela do XTreino TOMAN ☯️ - CSS PROFISSIONAL E 100% RESPONSIVO
+   Design moderno que funciona em QUALQUER TELA
    Compatível com: Index.html, script.js
    ============================================================ */
 
@@ -37,19 +37,18 @@
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   --font-mono: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
   
-  /* Espaçamentos */
-  --space-xs: 0.25rem;
-  --space-sm: 0.5rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-2xl: 3rem;
+  /* Espaçamentos responsivos */
+  --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+  --space-sm: clamp(0.5rem, 1vw, 1rem);
+  --space-md: clamp(1rem, 2vw, 1.5rem);
+  --space-lg: clamp(1.5rem, 3vw, 2rem);
+  --space-xl: clamp(2rem, 4vw, 3rem);
   
-  /* Bordas */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
+  /* Bordas responsivas */
+  --radius-sm: clamp(4px, 0.5vw, 6px);
+  --radius-md: clamp(8px, 1vw, 10px);
+  --radius-lg: clamp(10px, 1.5vw, 14px);
+  --radius-xl: clamp(12px, 2vw, 18px);
   --radius-round: 50%;
   
   /* Sombras */
@@ -64,31 +63,25 @@
   --transition-normal: 300ms ease;
   --transition-slow: 500ms ease;
   --transition-bounce: 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  
-  /* Z-index */
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-modal: 300;
-  --z-popover: 400;
-  --z-toast: 500;
 }
 
 /* ========== RESET E ESTILOS BASE ========== */
-* {
+*, *::before, *::after {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
 html {
-  scroll-behavior: smooth;
   font-size: 16px;
   height: 100%;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
 }
 
 body {
   font-family: var(--font-main);
-  font-size: 1rem;
+  font-size: clamp(0.875rem, 2vw, 1rem);
   line-height: 1.6;
   color: var(--c-text);
   background-color: var(--c-bg);
@@ -100,9 +93,10 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
 }
 
-img, svg {
+img, svg, video, canvas {
   max-width: 100%;
   height: auto;
   display: block;
@@ -112,12 +106,15 @@ button, input, select, textarea {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
+  max-width: 100%;
 }
 
 button {
   cursor: pointer;
   border: none;
   background: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 a {
@@ -130,23 +127,24 @@ a:hover {
   color: var(--c-secondary);
 }
 
-/* ========== LAYOUT PRINCIPAL ========== */
+/* ========== LAYOUT PRINCIPAL RESPONSIVO ========== */
 .container {
-  max-width: 1440px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
-  padding: var(--space-md);
+  padding: clamp(0.75rem, 2vw, 1.5rem);
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
   min-height: 100vh;
 }
 
-/* ========== HEADER ========== */
+/* ========== HEADER RESPONSIVO ========== */
 .app-header {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
-  padding: var(--space-lg);
+  gap: var(--space-md);
+  padding: clamp(1rem, 3vw, 1.5rem);
   background: rgba(19, 20, 31, 0.8);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -159,21 +157,23 @@ a:hover {
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  flex-wrap: wrap;
 }
 
 .brand-icon {
-  width: 60px;
-  height: 60px;
+  width: clamp(44px, 8vw, 60px);
+  height: clamp(44px, 8vw, 60px);
   background: linear-gradient(135deg, var(--c-primary), var(--c-secondary));
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  font-size: 1.5rem;
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
   color: white;
   box-shadow: var(--shadow-glow);
   transition: transform var(--transition-bounce);
+  flex-shrink: 0;
 }
 
 .brand-icon:hover {
@@ -181,7 +181,7 @@ a:hover {
 }
 
 .brand-text h1 {
-  font-size: 1.75rem;
+  font-size: clamp(1.25rem, 4.5vw, 1.75rem);
   font-weight: 800;
   background: linear-gradient(to right, var(--c-primary), var(--c-secondary));
   -webkit-background-clip: text;
@@ -189,37 +189,41 @@ a:hover {
   color: transparent;
   line-height: 1.2;
   margin-bottom: var(--space-xs);
+  word-break: break-word;
 }
 
 .subtitle {
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2.5vw, 0.9rem);
   color: var(--c-text-muted);
   font-weight: 500;
 }
 
-/* ========== TOOLBAR ========== */
+/* ========== TOOLBAR RESPONSIVO ========== */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
-  justify-content: flex-end;
+  justify-content: center;
+  width: 100%;
 }
 
-/* ========== BOTÕES ========== */
+/* ========== BOTÕES RESPONSIVOS ========== */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
-  padding: 0.75rem 1.25rem;
+  gap: var(--space-xs);
+  padding: clamp(0.625rem, 2vw, 0.75rem) clamp(0.875rem, 2.5vw, 1.25rem);
   border-radius: var(--radius-md);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 2.5vw, 0.9rem);
   transition: all var(--transition-normal);
   border: 2px solid transparent;
   position: relative;
   overflow: hidden;
   white-space: nowrap;
+  text-align: center;
+  min-width: min-content;
 }
 
 .btn::before {
@@ -272,19 +276,20 @@ a:hover {
 }
 
 .btn.tiny {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.8rem;
+  padding: clamp(0.25rem, 1vw, 0.375rem) clamp(0.5rem, 1.5vw, 0.75rem);
+  font-size: clamp(0.7rem, 2vw, 0.8rem);
 }
 
-/* ========== CARDS ========== */
+/* ========== CARDS RESPONSIVOS ========== */
 .card {
   background: rgba(19, 20, 31, 0.8);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  padding: clamp(1rem, 3vw, 1.5rem);
   box-shadow: var(--shadow-md);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  width: 100%;
 }
 
 .card:hover {
@@ -293,28 +298,38 @@ a:hover {
 }
 
 .card h2 {
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 3vw, 1.25rem);
   font-weight: 700;
   margin-bottom: var(--space-md);
   color: var(--c-text);
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  flex-wrap: wrap;
 }
 
 .card h2::after {
   content: '';
   flex: 1;
+  min-width: 60px;
   height: 2px;
   background: linear-gradient(to right, var(--c-primary), transparent);
   border-radius: 2px;
 }
 
-/* ========== LAYOUT PRINCIPAL ========== */
+/* ========== LAYOUT PRINCIPAL RESPONSIVO ========== */
 .layout {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-lg);
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -327,14 +342,12 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+  width: 100%;
 }
 
-/* ========== EDITOR DE TIMES ========== */
+/* ========== EDITOR DE TIMES RESPONSIVO ========== */
 .theme-editor {
-  /* REMOVIDO: position: sticky; */
-  /* REMOVIDO: top: var(--space-md); */
-  /* REMOVIDO: z-index: var(--z-sticky); */
-  /* Agora o card rolará normalmente com a página */
+  /* Não sticky - rola normalmente */
 }
 
 .theme-pickers {
@@ -344,14 +357,21 @@ a:hover {
   margin-bottom: var(--space-md);
 }
 
+@media (max-width: 480px) {
+  .theme-pickers {
+    grid-template-columns: 1fr;
+  }
+}
+
 .theme-group {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+  min-width: 0;
 }
 
 .theme-group label {
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
   font-weight: 600;
   color: var(--c-text-muted);
   text-transform: uppercase;
@@ -360,21 +380,30 @@ a:hover {
 
 .theme-group input[type="color"] {
   width: 100%;
-  height: 40px;
+  height: clamp(36px, 8vw, 40px);
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: border-color var(--transition-fast);
+  min-height: 36px;
 }
 
 .theme-group input[type="color"]:hover {
   border-color: var(--c-primary);
 }
 
+/* ========== GRID DE TIMES RESPONSIVO ========== */
 .teams-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: var(--space-md);
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .teams-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .team-card {
@@ -385,17 +414,12 @@ a:hover {
   transition: all var(--transition-normal);
   animation: fadeIn 0.5s ease forwards;
   opacity: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 @keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-.team-card:hover {
-  border-color: var(--c-primary);
-  box-shadow: 0 8px 32px rgba(0, 231, 255, 0.1);
+  to { opacity: 1; }
 }
 
 .team-card:nth-child(1) { animation-delay: 0.05s; }
@@ -411,30 +435,54 @@ a:hover {
 .team-card:nth-child(11) { animation-delay: 0.55s; }
 .team-card:nth-child(12) { animation-delay: 0.6s; }
 
+.team-card:hover {
+  border-color: var(--c-primary);
+  box-shadow: 0 8px 32px rgba(0, 231, 255, 0.1);
+}
+
 .team-row {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .team-row label {
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
   font-weight: 600;
   color: var(--c-text-muted);
   min-width: 80px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .team-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+  
+  .team-row label {
+    min-width: auto;
+    width: 100%;
+  }
 }
 
 .team-card input[type="text"],
 .team-card input[type="number"] {
   flex: 1;
-  padding: 0.625rem 0.875rem;
+  min-width: 0;
+  padding: clamp(0.5rem, 1.5vw, 0.625rem) clamp(0.75rem, 2vw, 0.875rem);
   background: rgba(10, 11, 16, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   color: var(--c-text);
   font-family: var(--font-mono);
   transition: all var(--transition-fast);
+  font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+  width: 100%;
 }
 
 .team-card input[type="text"]:focus,
@@ -446,9 +494,16 @@ a:hover {
 
 .quedas-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--space-sm);
   margin: var(--space-md) 0;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .quedas-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .queda-box {
@@ -456,11 +511,12 @@ a:hover {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-md);
   padding: var(--space-sm);
+  min-width: 0;
 }
 
 .queda-box label {
   display: block;
-  font-size: 0.75rem;
+  font-size: clamp(0.7rem, 2vw, 0.75rem);
   font-weight: 600;
   color: var(--c-text-muted);
   margin-bottom: var(--space-xs);
@@ -469,24 +525,32 @@ a:hover {
 }
 
 .logo-preview {
-  width: 60px;
-  height: 60px;
+  width: clamp(48px, 10vw, 60px);
+  height: clamp(48px, 10vw, 60px);
   border-radius: var(--radius-md);
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.1);
   background: rgba(10, 11, 16, 0.6);
   transition: border-color var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .logo-preview:hover {
   border-color: var(--c-primary);
 }
 
-/* ========== PÓDIO ========== */
+/* ========== PÓDIO RESPONSIVO ========== */
 .podium-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: var(--space-md);
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .podium-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .podium-card {
@@ -494,13 +558,14 @@ a:hover {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: var(--space-lg);
+  padding: var(--space-md);
   background: linear-gradient(145deg, rgba(19, 20, 31, 0.8), rgba(28, 29, 43, 0.8));
   border-radius: var(--radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all var(--transition-normal);
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .podium-card::before {
@@ -523,13 +588,14 @@ a:hover {
 .podium-card:nth-child(3)::before { background: linear-gradient(to right, #cd7f32, #b86f2a); }
 
 .podium-logo {
-  width: 80px;
-  height: 80px;
+  width: clamp(60px, 15vw, 80px);
+  height: clamp(60px, 15vw, 80px);
   border-radius: var(--radius-round);
   object-fit: cover;
   border: 3px solid rgba(255, 255, 255, 0.1);
   margin-bottom: var(--space-md);
   background: rgba(10, 11, 16, 0.6);
+  flex-shrink: 0;
 }
 
 .podium-info {
@@ -537,23 +603,26 @@ a:hover {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: 100%;
 }
 
 .podium-name {
-  font-size: 1.125rem;
+  font-size: clamp(0.9rem, 3vw, 1.125rem);
   font-weight: 700;
   margin-bottom: var(--space-xs);
   color: var(--c-text);
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .podium-score {
-  font-size: 1.5rem;
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
   font-weight: 800;
   color: var(--c-primary);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* ========== POSTER ========== */
+/* ========== POSTER RESPONSIVO ========== */
 .poster-wrapper {
   position: relative;
   width: 100%;
@@ -561,13 +630,15 @@ a:hover {
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.05);
+  aspect-ratio: 16/9;
+  max-height: 70vh;
 }
 
 .poster canvas {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  border-radius: var(--radius-lg);
+  object-fit: contain;
 }
 
 .poster-actions {
@@ -576,22 +647,37 @@ a:hover {
   justify-content: center;
   flex-wrap: wrap;
   margin-top: var(--space-lg);
+  width: 100%;
 }
 
-/* ========== SCOREBOARD ========== */
+@media (max-width: 480px) {
+  .poster-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .poster-actions .btn {
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+/* ========== SCOREBOARD RESPONSIVO ========== */
 .scoreboard {
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .legend {
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
   color: var(--c-text-muted);
   margin-bottom: var(--space-md);
   padding: var(--space-sm) var(--space-md);
   background: rgba(10, 11, 16, 0.6);
   border-radius: var(--radius-md);
   border-left: 4px solid var(--c-primary);
+  word-break: break-word;
 }
 
 .table-wrap {
@@ -599,19 +685,26 @@ a:hover {
   border-radius: var(--radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(10, 11, 16, 0.6);
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
 }
 
 table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 800px;
+  min-width: 600px;
+}
+
+@media (max-width: 768px) {
+  table {
+    min-width: 100%;
+  }
 }
 
 thead {
   position: sticky;
   top: 0;
-  z-index: var(--z-sticky);
   background: rgba(19, 20, 31, 0.95);
   backdrop-filter: blur(10px);
 }
@@ -627,14 +720,15 @@ thead::after {
 }
 
 th {
-  padding: var(--space-md);
+  padding: clamp(0.75rem, 2vw, 1rem);
   text-align: left;
   font-weight: 700;
   color: var(--c-text);
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2.5vw, 0.9rem);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
 }
 
 th:first-child {
@@ -646,9 +740,10 @@ th:last-child {
 }
 
 td {
-  padding: var(--space-md);
+  padding: clamp(0.75rem, 2vw, 1rem);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 0.95rem;
+  font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+  word-break: break-word;
 }
 
 tbody tr {
@@ -671,13 +766,13 @@ tbody tr:nth-child(even):hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 var(--space-sm);
+  min-width: clamp(28px, 6vw, 32px);
+  height: clamp(28px, 6vw, 32px);
+  padding: 0 clamp(0.5rem, 1.5vw, 0.75rem);
   background: linear-gradient(135deg, var(--c-primary), var(--c-secondary));
   color: white;
   font-weight: 800;
-  font-size: 0.875rem;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   border-radius: var(--radius-round);
   box-shadow: var(--shadow-sm);
 }
@@ -690,18 +785,19 @@ td.right {
   text-align: right;
   font-weight: 700;
   font-family: var(--font-mono);
-  font-size: 1.125rem;
+  font-size: clamp(0.9rem, 3vw, 1.125rem);
 }
 
-/* ========== FOOTER ========== */
+/* ========== FOOTER RESPONSIVO ========== */
 .footer {
   text-align: center;
   padding: var(--space-lg);
   margin-top: var(--space-lg);
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2.5vw, 0.9rem);
   color: var(--c-text-muted);
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(19, 20, 31, 0.8);
+  word-break: break-word;
 }
 
 /* ========== ANIMAÇÕES ========== */
@@ -727,56 +823,81 @@ td.right {
   }
 }
 
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 var(--c-glow-primary);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(0, 231, 255, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 231, 255, 0);
-  }
-}
-
 /* ========== UTILITÁRIOS ========== */
 .muted {
   color: var(--c-text-muted);
 }
 
 .small {
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
 }
 
 .hidden {
   display: none !important;
 }
 
-/* ========== RESPONSIVIDADE ========== */
-@media (max-width: 1200px) {
-  .container {
-    padding: var(--space-sm);
+/* ========== RESPONSIVIDADE POR DISPOSITIVO ========== */
+
+/* CELULARES PEQUENOS (até 360px) */
+@media (max-width: 360px) {
+  html {
+    font-size: 14px;
   }
   
-  .teams-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  .container {
+    padding: 0.5rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .card {
+    padding: 0.75rem;
+  }
+  
+  .team-card {
+    padding: 0.75rem;
   }
 }
 
-@media (max-width: 768px) {
+/* CELULARES (até 480px) */
+@media (max-width: 480px) {
   .app-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-md);
+    padding: 0.75rem;
   }
   
   .brand {
     flex-direction: column;
     text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .brand-icon {
+    margin: 0 auto;
   }
   
   .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .toolbar .btn {
+    width: 100%;
     justify-content: center;
+  }
+  
+  .layout {
+    gap: 1rem;
+  }
+  
+  .col-main, .col-side {
+    gap: 1rem;
+  }
+  
+  .theme-pickers {
+    grid-template-columns: 1fr;
   }
   
   .teams-grid {
@@ -791,51 +912,127 @@ td.right {
     grid-template-columns: 1fr;
   }
   
-  .poster-actions {
-    flex-direction: column;
-  }
-  
-  .btn {
-    width: 100%;
-  }
-  
-  .theme-pickers {
-    grid-template-columns: 1fr;
+  .table-wrap {
+    margin: 0 -0.5rem;
+    width: calc(100% + 1rem);
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 }
 
-@media (max-width: 480px) {
-  html {
-    font-size: 14px;
+/* TABLETS (481px a 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .teams-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .podium-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .toolbar {
+    justify-content: space-between;
+  }
+}
+
+/* TABLETS GRANDES / NOTEBOOKS PEQUENOS (769px a 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .layout {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .col-side {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+  }
+  
+  .podium {
+    grid-column: span 2;
+  }
+  
+  .poster {
+    grid-column: span 2;
+  }
+  
+  .teams-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* NOTEBOOKS / DESKTOPS (1025px a 1440px) */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .container {
+    max-width: 1200px;
+  }
+  
+  .teams-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* DESKTOPS GRANDES (acima de 1440px) */
+@media (min-width: 1441px) {
+  .container {
+    max-width: 1600px;
+  }
+  
+  .teams-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ========== ORIENTAÇÃO ========== */
+@media (orientation: landscape) and (max-height: 600px) {
+  .container {
+    padding: 0.5rem;
   }
   
   .card {
-    padding: var(--space-md);
+    padding: 0.75rem;
   }
   
-  .team-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-xs);
-  }
-  
-  .team-row label {
-    min-width: auto;
-  }
-  
-  th, td {
-    padding: var(--space-sm);
-    font-size: 0.85rem;
+  .poster-wrapper {
+    max-height: 50vh;
   }
 }
 
-/* ========== DARK MODE ADJUSTMENTS ========== */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --c-bg: #0a0b10;
-    --c-bg-light: #13141f;
-    --c-text: #e8f1ff;
-    --c-text-muted: #a0b3d9;
+/* ========== TOUCH DEVICE OPTIMIZATIONS ========== */
+@media (hover: none) and (pointer: coarse) {
+  .btn:hover {
+    transform: none;
+  }
+  
+  .card:hover {
+    transform: none;
+  }
+  
+  .team-card:hover {
+    transform: none;
+  }
+  
+  .podium-card:hover {
+    transform: none;
+  }
+  
+  tbody tr:hover {
+    background: transparent;
+  }
+  
+  /* Aumentar área de toque para elementos interativos */
+  button, 
+  input[type="button"], 
+  input[type="submit"], 
+  input[type="reset"],
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input, select, textarea {
+    font-size: 16px; /* Evita zoom no iOS */
   }
 }
 
@@ -844,7 +1041,10 @@ td.right {
   .toolbar,
   .theme-editor,
   .poster-actions,
-  .btn {
+  .btn,
+  .brand-icon,
+  .logo-preview,
+  .podium-logo {
     display: none !important;
   }
   
@@ -861,6 +1061,7 @@ td.right {
   
   table {
     break-inside: avoid;
+    min-width: 100% !important;
   }
   
   thead {
@@ -870,45 +1071,26 @@ td.right {
   .footer {
     border-top: 1px solid #ddd;
   }
-}
-
-/* ========== HIGH CONTRAST MODE ========== */
-@media (prefers-contrast: high) {
-  :root {
-    --c-primary: #00aaff;
-    --c-secondary: #ff0055;
-    --c-text: #ffffff;
-    --c-text-muted: #cccccc;
+  
+  body {
+    background: white !important;
+    color: black !important;
   }
   
   .card {
-    border: 2px solid var(--c-text);
+    background: white !important;
   }
   
-  input, button, select, textarea {
-    border: 2px solid var(--c-text);
+  table, th, td {
+    border: 1px solid black !important;
+    color: black !important;
   }
 }
 
-/* ========== REDUCED MOTION ========== */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-  
-  html {
-    scroll-behavior: auto;
-  }
-}
-
-/* ========== CUSTOM SCROLLBAR ========== */
+/* ========== SCROLLBAR PERSONALIZADA ========== */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -926,11 +1108,22 @@ td.right {
   background: linear-gradient(to bottom, var(--c-primary-dark), var(--c-secondary-dark));
 }
 
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-primary) var(--c-bg);
+}
+
 /* ========== FOCUS STATES ========== */
 :focus-visible {
   outline: 3px solid var(--c-primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+}
+
+/* Remove outline para elementos não teclado */
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* ========== LOADING STATES ========== */
@@ -970,14 +1163,14 @@ td.right {
   padding: var(--space-xs) var(--space-sm);
   background: var(--c-bg-lighter);
   color: var(--c-text);
-  font-size: 0.75rem;
+  font-size: clamp(0.7rem, 2vw, 0.75rem);
   border-radius: var(--radius-sm);
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
   transition: all var(--transition-fast);
-  z-index: var(--z-tooltip);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
 }
 
 [data-tooltip]:hover::before {
