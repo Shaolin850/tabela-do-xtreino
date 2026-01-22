@@ -191,25 +191,25 @@ function temaAleatorio() {
     {primaria:'#ff00ff', secundaria:'#00ffff', bg:'#0a0510', texto:'#ffffff'},
     {primaria:'#ff006e', secundaria:'#00ff88', bg:'#08050a', texto:'#ffffff'},
     {primaria:'#9d00ff', secundaria:'#ffd300', bg:'#0a060f', texto:'#ffffff'},
-    {primaria:'#00ffaa', secundaria:'#ff0080', bg:'#05100a', texto:'#000000'},
+    {primaria:'#00ffaa', secundaria:'#ff0080', bg:'#05100a', texto:'#ffffff'},
     
     // Cyberpunk
     {primaria:'#00e7ff', secundaria:'#ff004c', bg:'#0a0b10', texto:'#e8f1ff'},
     {primaria:'#7afcff', secundaria:'#ff6b6b', bg:'#04060a', texto:'#eafcff'},
-    {primaria:'#b6ff6b', secundaria:'#6bd3ff', bg:'#061014', texto:'#000000'},
+    {primaria:'#b6ff6b', secundaria:'#6bd3ff', bg:'#061014', texto:'#ffffff'},
     {primaria:'#ff9f1c', secundaria:'#2d00ff', bg:'#08020a', texto:'#fff7ef'},
     
     // Cores Vivas
     {primaria:'#ff0055', secundaria:'#00ffcc', bg:'#0a0a0a', texto:'#ffffff'},
     {primaria:'#ff5500', secundaria:'#00aaff', bg:'#0c0804', texto:'#ffffff'},
     {primaria:'#aa00ff', secundaria:'#ffaa00', bg:'#0a040c', texto:'#ffffff'},
-    {primaria:'#00ff55', secundaria:'#ff00aa', bg:'#040a08', texto:'#000000'},
+    {primaria:'#00ff55', secundaria:'#ff00aa', bg:'#040a08', texto:'#ffffff'},
     
     // Gradientes Intensos
     {primaria:'#ff0040', secundaria:'#8000ff', bg:'#000000', texto:'#ffffff'},
     {primaria:'#00ff80', secundaria:'#0080ff', bg:'#000814', texto:'#ffffff'},
-    {primaria:'#ff80ff', secundaria:'#80ffff', bg:'#140008', texto:'#000000'},
-    {primaria:'#ffff00', secundaria:'#ff0080', bg:'#141400', texto:'#000000'},
+    {primaria:'#ff80ff', secundaria:'#80ffff', bg:'#140008', texto:'#ffffff'},
+    {primaria:'#ffff00', secundaria:'#ff0080', bg:'#141400', texto:'#fffbfb'},
     
     // Esquemas Únicos
     {primaria:'#38b000', secundaria:'#ff0054', bg:'#040a08', texto:'#e6ffe6'},
@@ -219,14 +219,14 @@ function temaAleatorio() {
     
     // Mais opções vibrantes
     {primaria:'#ff0066', secundaria:'#66ff00', bg:'#0a050a', texto:'#ffffff'},
-    {primaria:'#00ff66', secundaria:'#ff6600', bg:'#050a05', texto:'#000000'},
-    {primaria:'#ffcc00', secundaria:'#cc00ff', bg:'#0a0a05', texto:'#000000'},
+    {primaria:'#00ff66', secundaria:'#ff6600', bg:'#050a05', texto:'#ffffff'},
+    {primaria:'#ffcc00', secundaria:'#cc00ff', bg:'#0a0a05', texto:'#fffafa'},
     {primaria:'#ff3366', secundaria:'#33ffcc', bg:'#0a0508', texto:'#ffffff'},
-    {primaria:'#33ff66', secundaria:'#ff33cc', bg:'#050a08', texto:'#000000'},
-    {primaria:'#ff9933', secundaria:'#3399ff', bg:'#0a0805', texto:'#000000'},
-    {primaria:'#ff66cc', secundaria:'#66ffcc', bg:'#0a050c', texto:'#000000'},
-    {primaria:'#ccff66', secundaria:'#ff66ff', bg:'#080a05', texto:'#000000'},
-    {primaria:'#00ccff', secundaria:'#ffcc66', bg:'#05080a', texto:'#000000'},
+    {primaria:'#33ff66', secundaria:'#ff33cc', bg:'#050a08', texto:'#fffdfd'},
+    {primaria:'#ff9933', secundaria:'#3399ff', bg:'#0a0805', texto:'#fffafa'},
+    {primaria:'#ff66cc', secundaria:'#66ffcc', bg:'#0a050c', texto:'#ffffff'},
+    {primaria:'#ccff66', secundaria:'#ff66ff', bg:'#080a05', texto:'#e8dddd'},
+    {primaria:'#00ccff', secundaria:'#ffcc66', bg:'#05080a', texto:'#fff7f7'},
     {primaria:'#ff0066', secundaria:'#00ffcc', bg:'#0a0a05', texto:'#ffffff'}
   ];
   aplicarTema(randomFrom(presets), true);
