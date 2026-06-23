@@ -1,4 +1,5 @@
 /* core.js — Estado global, helpers, cálculo e UI principal da Tabela XTreino TOMAN ☯️ */
+// Versão com TEMA FIXO (preto, vermelho, branco) e sem temas aleatórios
 
 // ========== CONSTANTES ==========
 const NUM_TIMES = 12;
@@ -8,7 +9,7 @@ const NUM_QUEDAS = 4;
 const ESTADO = {
   animacoes: true,
   times: [],
-  tema: { primaria: '#00e7ff', secundaria: '#ff004c', bg: '#0a0b10', texto: '#e8f1ff' },
+  tema: { primaria: '#ff0000', secundaria: '#ffffff', bg: '#0a0a0a', texto: '#ffffff' },
   ultimoTemaPoster: null,
   temasUsados: []
 };
@@ -53,14 +54,9 @@ function hexToRgba(hex, alpha) {
 
 // ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', () => {
-  try {
-    const salvo = JSON.parse(localStorage.getItem('xt_theme') || 'null');
-    if (salvo) ESTADO.tema = salvo;
-  } catch (e) { }
-
   inicializarTimes();
   ligarEventosUI();
-  aplicarTema(ESTADO.tema);
+  aplicarTemaFixo();
   renderizarEditorTimes();
   calcularEExibir();
 });
@@ -78,51 +74,14 @@ function inicializarTimes() {
   }));
 }
 
-// ========== TEMAS (exceto o infinito do pôster) ==========
-function aplicarTema(tema, persist = false) {
-  ESTADO.tema = { ...tema };
+// ========== TEMA FIXO ==========
+function aplicarTemaFixo() {
+  const tema = { primaria: '#ff0000', secundaria: '#ffffff', bg: '#0a0a0a', texto: '#ffffff' };
+  ESTADO.tema = tema;
   document.documentElement.style.setProperty('--c-primary', tema.primaria);
   document.documentElement.style.setProperty('--c-secondary', tema.secundaria);
   document.documentElement.style.setProperty('--c-bg', tema.bg);
   document.documentElement.style.setProperty('--c-text', tema.texto);
-  if (persist) localStorage.setItem('xt_theme', JSON.stringify(tema));
-}
-
-function temaAleatorio() {
-  const presets = [
-    { primaria: '#00f3ff', secundaria: '#ff00d4', bg: '#050510', texto: '#f0f8ff' },
-    { primaria: '#ff00ff', secundaria: '#00ffff', bg: '#0a0510', texto: '#ffffff' },
-    { primaria: '#ff006e', secundaria: '#00ff88', bg: '#08050a', texto: '#ffffff' },
-    { primaria: '#9d00ff', secundaria: '#ffd300', bg: '#0a060f', texto: '#ffffff' },
-    { primaria: '#00ffaa', secundaria: '#ff0080', bg: '#05100a', texto: '#ffffff' },
-    { primaria: '#00e7ff', secundaria: '#ff004c', bg: '#0a0b10', texto: '#e8f1ff' },
-    { primaria: '#7afcff', secundaria: '#ff6b6b', bg: '#04060a', texto: '#eafcff' },
-    { primaria: '#b6ff6b', secundaria: '#6bd3ff', bg: '#061014', texto: '#ffffff' },
-    { primaria: '#ff9f1c', secundaria: '#2d00ff', bg: '#08020a', texto: '#fff7ef' },
-    { primaria: '#ff0055', secundaria: '#00ffcc', bg: '#0a0a0a', texto: '#ffffff' },
-    { primaria: '#ff5500', secundaria: '#00aaff', bg: '#0c0804', texto: '#ffffff' },
-    { primaria: '#aa00ff', secundaria: '#ffaa00', bg: '#0a040c', texto: '#ffffff' },
-    { primaria: '#00ff55', secundaria: '#ff00aa', bg: '#040a08', texto: '#ffffff' },
-    { primaria: '#ff0040', secundaria: '#8000ff', bg: '#000000', texto: '#ffffff' },
-    { primaria: '#00ff80', secundaria: '#0080ff', bg: '#000814', texto: '#ffffff' },
-    { primaria: '#ff80ff', secundaria: '#80ffff', bg: '#140008', texto: '#ffffff' },
-    { primaria: '#ffff00', secundaria: '#ff0080', bg: '#141400', texto: '#fffbfb' },
-    { primaria: '#38b000', secundaria: '#ff0054', bg: '#040a08', texto: '#e6ffe6' },
-    { primaria: '#7209b7', secundaria: '#f72585', bg: '#0a040c', texto: '#f5e6ff' },
-    { primaria: '#ff5400', secundaria: '#00cfc1', bg: '#0c0804', texto: '#fff0e6' },
-    { primaria: '#3a86ff', secundaria: '#ff006e', bg: '#03071e', texto: '#ffffff' },
-    { primaria: '#ff0066', secundaria: '#66ff00', bg: '#0a050a', texto: '#ffffff' },
-    { primaria: '#00ff66', secundaria: '#ff6600', bg: '#050a05', texto: '#ffffff' },
-    { primaria: '#ffcc00', secundaria: '#cc00ff', bg: '#0a0a05', texto: '#fffafa' },
-    { primaria: '#ff3366', secundaria: '#33ffcc', bg: '#0a0508', texto: '#ffffff' },
-    { primaria: '#33ff66', secundaria: '#ff33cc', bg: '#050a08', texto: '#fffdfd' },
-    { primaria: '#ff9933', secundaria: '#3399ff', bg: '#0a0805', texto: '#fffafa' },
-    { primaria: '#ff66cc', secundaria: '#66ffcc', bg: '#0a050c', texto: '#ffffff' },
-    { primaria: '#ccff66', secundaria: '#ff66ff', bg: '#080a05', texto: '#e8dddd' },
-    { primaria: '#00ccff', secundaria: '#ffcc66', bg: '#05080a', texto: '#fff7f7' },
-    { primaria: '#ff0066', secundaria: '#00ffcc', bg: '#0a0a05', texto: '#ffffff' }
-  ];
-  aplicarTema(randomFrom(presets), true);
 }
 
 // ========== CÁLCULO DOS TIMES ==========
@@ -141,7 +100,6 @@ function calcularPontuacaoTime(t) {
 }
 
 function calcularEExibir() {
-  // Recalcular todos os times
   ESTADO.times.forEach(t => {
     const c = calcularPontuacaoTime(t);
     t.booyas = c.booyas;
@@ -149,13 +107,11 @@ function calcularEExibir() {
     t.score = c.score;
   });
 
-  // Atualizar exibição de booyas no editor
   ESTADO.times.forEach((t, idx) => {
     const el = porId(`booyas-${idx}`);
     if (el) el.textContent = t.booyas;
   });
 
-  // Ordenar times por pontuação
   const sorted = [...ESTADO.times].sort((a, b) => {
     const scoreDiff = b.score - a.score;
     if (scoreDiff !== 0) return scoreDiff;
@@ -164,7 +120,6 @@ function calcularEExibir() {
     return b.booyas - a.booyas;
   });
 
-  // Atualizar tabela de pontuação
   if (porId('scoreBody')) {
     porId('scoreBody').innerHTML = sorted.map((t, i) => `
       <tr>
@@ -178,7 +133,6 @@ function calcularEExibir() {
     `).join('');
   }
 
-  // Atualizar pódio
   [1, 2, 3].forEach(i => {
     const p = sorted[i - 1];
     const logoEl = porId(`podium${i}Logo`);
@@ -196,7 +150,6 @@ function calcularEExibir() {
     if (scoreEl) scoreEl.textContent = p ? `${p.score} pts` : '0 pts';
   });
 
-  // Atualizar resumo
   if (porId('timesResumo')) {
     porId('timesResumo').innerHTML = montarTabelaTimesResumo(ESTADO.times);
   }
@@ -247,7 +200,6 @@ function renderizarEditorTimes() {
     container.appendChild(card);
   });
 
-  // Eventos do editor
   container.querySelectorAll('input, button').forEach(el => {
     const idx = el.dataset.idx !== undefined ? parseInt(el.dataset.idx, 10) : null;
     const field = el.dataset.field;
@@ -286,7 +238,7 @@ function renderizarEditorTimes() {
   });
 }
 
-// ========== RESUMO (TABELA AUXILIAR) ==========
+// ========== RESUMO ==========
 function montarTabelaTimesResumo(times) {
   if (!Array.isArray(times)) return '<div class="muted">Nenhum time configurado.</div>';
   let html = '<table class="times-table"><thead><tr><th>Line</th>';
@@ -302,20 +254,8 @@ function montarTabelaTimesResumo(times) {
   return html;
 }
 
-// ========== EVENTOS UI (exceto poster e export) ==========
+// ========== EVENTOS UI ==========
 function ligarEventosUI() {
-  porId('btnApplyTheme')?.addEventListener('click', () => {
-    const tema = {
-      primaria: porId('colorPrimary').value,
-      secundaria: porId('colorSecondary').value,
-      bg: porId('colorBg').value,
-      texto: porId('colorText').value
-    };
-    aplicarTema(tema, true);
-  });
-
-  porId('btnRandomTheme')?.addEventListener('click', temaAleatorio);
-
   porId('btnClear')?.addEventListener('click', () => {
     if (confirm('Limpar todos os dados dos times?')) {
       inicializarTimes();
@@ -331,8 +271,7 @@ function ligarEventosUI() {
   });
 }
 
-// Tornar funções necessárias globalmente acessíveis
-window.ESTADO = ESTADO;  // necessário para poster/export
+window.ESTADO = ESTADO;
 window.renderizarEditorTimes = renderizarEditorTimes;
 window.calcularEExibir = calcularEExibir;
 window.porId = porId;
