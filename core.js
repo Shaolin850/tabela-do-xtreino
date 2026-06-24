@@ -1,17 +1,13 @@
 /* core.js — Estado global, helpers, cálculo e UI principal da Tabela XTreino TOMAN ☯️ */
-// Versão com TEMA FIXO (preto, vermelho, branco) e sem temas aleatórios
+// Versão com salvamento automático, compressão de logos e HEADER FIXO
 
-// ========== CONSTANTES ==========
 const NUM_TIMES = 12;
 const NUM_QUEDAS = 4;
 
-// ========== ESTADO GLOBAL ==========
 const ESTADO = {
   animacoes: true,
   times: [],
-  tema: { primaria: '#ff0000', secundaria: '#ffffff', bg: '#0a0a0a', texto: '#ffffff' },
-  ultimoTemaPoster: null,
-  temasUsados: []
+  tema: { primaria: '#ff0000', secundaria: '#ffffff', bg: '#0a0a0a', texto: '#ffffff' }
 };
 
 // ========== HELPERS ==========
@@ -19,29 +15,6 @@ function porId(id) { return document.getElementById(id); }
 
 function escapeHtml(s) {
   return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function randomBetween(a, b) {
-  return a + Math.random() * (b - a);
-}
-
-function randomFrom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function hslToHex(h, s, l) {
-  s /= 100; l /= 100;
-  const k = n => (n + h / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = n => {
-    const v = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-    return Math.round(255 * v);
-  };
-  return `#${f(0).toString(16).padStart(2, '0')}${f(8).toString(16).padStart(2, '0')}${f(4).toString(16).padStart(2, '0')}`;
 }
 
 function hexToRgba(hex, alpha) {
@@ -52,13 +25,164 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+// ========== COMPRESSÃO DE IMAGEM ==========
+function comprimirImagem(dataURL, maxWidth = 120, maxHeight = 120, qualidade = 0.6) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      if (height > maxHeight) {
+        width = (width * maxHeight) / height;
+        height = maxHeight;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', qualidade));
+    };
+    img.onerror = () => resolve(dataURL);
+    img.src = dataURL;
+  });
+}
+
+// ========== NOTIFICAÇÕES ANIMADAS ==========
+function mostrarNotificacao(mensagem, tipo = 'success') {
+  const old = document.querySelector('.toast-notification');
+  if (old) old.remove();
+
+  const cores = {
+    success: { bg: '#00ff88', text: '#000', icon: '✅' },
+    warning: { bg: '#ffcc00', text: '#000', icon: '⚠️' },
+    danger: { bg: '#ff4757', text: '#fff', icon: '❌' },
+    info: { bg: '#00e7ff', text: '#000', icon: 'ℹ️' }
+  };
+
+  const cor = cores[tipo] || cores.success;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification';
+  toast.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="font-size:28px;">${cor.icon}</span>
+      <span style="font-weight:600;font-size:16px;">${mensagem}</span>
+    </div>
+  `;
+  toast.style.cssText = `
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: ${cor.bg};
+    color: ${cor.text};
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-family: 'Inter', Arial, sans-serif;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 9999;
+    max-width: 400px;
+    min-width: 280px;
+    border: 2px solid rgba(255,255,255,0.1);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s ease;
+    pointer-events: none;
+  `;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.transform = 'translateX(0)';
+    toast.style.opacity = '1';
+  });
+
+  setTimeout(() => {
+    toast.style.transform = 'translateX(120%)';
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 500);
+  }, 3500);
+}
+
+// ========== PERSISTÊNCIA LOCAL (SALVAMENTO AUTOMÁTICO) ==========
+function salvarDados() {
+  try {
+    const dados = ESTADO.times.map(t => ({
+      id: t.id,
+      nome: t.nome,
+      posQ: t.posQ,
+      killsQ: t.killsQ,
+      logoDataUrl: t.logoDataUrl || ''
+    }));
+    
+    const json = JSON.stringify(dados);
+    localStorage.setItem('xtreino_dados', json);
+    // Não mostra notificação para não poluir a tela
+  } catch (error) {
+    if (error.name === 'QuotaExceededError' || error.code === 22) {
+      mostrarNotificacao('❌ Espaço insuficiente! Exporte os dados.', 'danger');
+    }
+  }
+}
+
+function carregarDados() {
+  const raw = localStorage.getItem('xtreino_dados');
+  if (!raw) {
+    inicializarTimes();
+    return false;
+  }
+  try {
+    const dados = JSON.parse(raw);
+    if (dados && dados.length === NUM_TIMES) {
+      ESTADO.times = dados.map((t, i) => ({
+        ...t,
+        id: i + 1,
+        booyas: 0,
+        totalKills: 0,
+        score: 0
+      }));
+      return true;
+    }
+  } catch (e) {}
+  inicializarTimes();
+  return false;
+}
+
 // ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', () => {
-  inicializarTimes();
+  console.log('🚀 DOM carregado - Inicializando...');
+  
+  carregarDados();
+  console.log('📂 Dados carregados');
+  
   ligarEventosUI();
+  console.log('🔗 Eventos UI conectados');
+  
   aplicarTemaFixo();
+  console.log('🎨 Tema fixo aplicado');
+  
   renderizarEditorTimes();
+  console.log('📝 Editor renderizado');
+  
   calcularEExibir();
+  console.log('📊 Cálculos exibidos');
+  
+  // Detecta scroll para adicionar classe no header
+  window.addEventListener('scroll', () => {
+    const header = document.querySelector('.fixed-header');
+    if (header) {
+      if (window.scrollY > 10) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    }
+  });
 });
 
 function inicializarTimes() {
@@ -84,7 +208,7 @@ function aplicarTemaFixo() {
   document.documentElement.style.setProperty('--c-text', tema.texto);
 }
 
-// ========== CÁLCULO DOS TIMES ==========
+// ========== CÁLCULO ==========
 function calcularPontuacaoTime(t) {
   let kills = t.killsQ.reduce((a, b) => a + (+b || 0), 0);
   let booyas = 0, pts = 0;
@@ -158,7 +282,10 @@ function calcularEExibir() {
 // ========== RENDERIZAÇÃO DO EDITOR ==========
 function renderizarEditorTimes() {
   const container = porId('teamsContainer');
-  if (!container) return;
+  if (!container) {
+    console.error('❌ Container teamsContainer não encontrado!');
+    return;
+  }
   container.innerHTML = '';
 
   ESTADO.times.forEach((time, idx) => {
@@ -200,22 +327,33 @@ function renderizarEditorTimes() {
     container.appendChild(card);
   });
 
+  // Reconectar eventos após recriar os inputs
   container.querySelectorAll('input, button').forEach(el => {
     const idx = el.dataset.idx !== undefined ? parseInt(el.dataset.idx, 10) : null;
     const field = el.dataset.field;
     const q = el.dataset.q ? parseInt(el.dataset.q, 10) : null;
 
     if (field === 'logo') {
-      el.addEventListener('change', e => {
+      el.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        
+        mostrarNotificacao('⏳ Comprimindo imagem...', 'info');
+        
         const reader = new FileReader();
-        reader.onload = () => {
-          ESTADO.times[idx].logoDataUrl = reader.result;
-          const preview = porId(`logo-prev-${idx}`);
-          preview.src = reader.result;
-          preview.style.display = 'block';
-          calcularEExibir();
+        reader.onload = async (ev) => {
+          try {
+            const comprimida = await comprimirImagem(ev.target.result, 120, 120, 0.6);
+            ESTADO.times[idx].logoDataUrl = comprimida;
+            const preview = porId(`logo-prev-${idx}`);
+            preview.src = comprimida;
+            preview.style.display = 'block';
+            calcularEExibir();
+            salvarDados();
+            mostrarNotificacao('✅ Logo adicionada com sucesso!', 'success');
+          } catch (error) {
+            mostrarNotificacao('❌ Erro ao comprimir imagem', 'danger');
+          }
         };
         reader.readAsDataURL(file);
       });
@@ -234,6 +372,7 @@ function renderizarEditorTimes() {
         ESTADO.times[idx].killsQ[q] = val === '' ? 0 : Math.max(0, parseInt(val, 10) || 0);
       }
       calcularEExibir();
+      salvarDados(); // SALVAMENTO AUTOMÁTICO
     });
   });
 }
@@ -256,19 +395,26 @@ function montarTabelaTimesResumo(times) {
 
 // ========== EVENTOS UI ==========
 function ligarEventosUI() {
-  porId('btnClear')?.addEventListener('click', () => {
-    if (confirm('Limpar todos os dados dos times?')) {
-      inicializarTimes();
-      renderizarEditorTimes();
-      calcularEExibir();
-    }
-  });
+  console.log('🔗 Conectando eventos...');
+  
+  // Botão Salvar (OCULTO - mantido apenas para referência)
+  const btnSalvar = porId('btnSalvar');
+  if (btnSalvar) {
+    console.log('✅ Botão "Salvar" encontrado (oculto)');
+    // Não precisa de evento pois o salvamento é automático
+  }
 
-  porId('btnToggleAnim')?.addEventListener('click', () => {
-    ESTADO.animacoes = !ESTADO.animacoes;
-    document.documentElement.classList.toggle('anim-off', !ESTADO.animacoes);
-    porId('btnToggleAnim').textContent = `Animações: ${ESTADO.animacoes ? 'ON' : 'OFF'}`;
-  });
+  // Botão Animações
+  const btnToggleAnim = porId('btnToggleAnim');
+  if (btnToggleAnim) {
+    btnToggleAnim.addEventListener('click', () => {
+      ESTADO.animacoes = !ESTADO.animacoes;
+      document.documentElement.classList.toggle('anim-off', !ESTADO.animacoes);
+      btnToggleAnim.textContent = `Animações: ${ESTADO.animacoes ? 'ON' : 'OFF'}`;
+    });
+  }
+  
+  console.log('✅ Todos os eventos conectados!');
 }
 
 window.ESTADO = ESTADO;
@@ -276,7 +422,5 @@ window.renderizarEditorTimes = renderizarEditorTimes;
 window.calcularEExibir = calcularEExibir;
 window.porId = porId;
 window.hexToRgba = hexToRgba;
-window.hslToHex = hslToHex;
-window.randomInt = randomInt;
-window.randomBetween = randomBetween;
-window.randomFrom = randomFrom;
+window.mostrarNotificacao = mostrarNotificacao;
+window.comprimirImagem = comprimirImagem;
