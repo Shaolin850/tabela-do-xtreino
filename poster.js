@@ -1,4 +1,5 @@
 /* poster.js — Pôster com proporção 2:3 e imagem de fundo FIXA (CARREGAMENTO INSTANTÂNEO) */
+// Versão com logos em alta qualidade
 
 // ========== CONFIGURAÇÕES DOS SLOTS (SUAS POSIÇÕES) ==========
 const slotConfigs = [
@@ -7,20 +8,17 @@ const slotConfigs = [
   { x: 720, y: 1150, w: 280, h: 350 }  // 3º lugar
 ];
 
-// ========== IMAGEM FIXA DO PÔSTER (EM BASE64 PARA CARREGAMENTO INSTANTÂNEO) ==========
-// COLOQUE AQUI SUA IMAGEM EM BASE64 (use o conversor abaixo)
-// Ou mantenha o caminho da imagem local
-const POSTER_IMAGEM_FIXA = 'poster_fundo.png'; // <-- ALTERE AQUI
+// ========== IMAGEM FIXA DO PÔSTER ==========
+const POSTER_IMAGEM_FIXA = 'poster_fundo.png';
 
 // Cache da imagem em base64 (carregado uma única vez)
 let posterImageDataURL = null;
 let imagemCarregada = false;
 
-// ========== PRÉ-CARREGAR IMAGEM (INSTANTÂNEO) ==========
+// ========== PRÉ-CARREGAR IMAGEM ==========
 function preCarregarImagem() {
   console.log('🚀 Pré-carregando imagem do pôster...');
   
-  // Tenta carregar do localStorage primeiro (mais rápido)
   try {
     const salva = localStorage.getItem('xtreino_poster_image_cache');
     if (salva) {
@@ -32,7 +30,6 @@ function preCarregarImagem() {
     }
   } catch (e) {}
 
-  // Se não tiver em cache, carrega a imagem
   if (!POSTER_IMAGEM_FIXA) {
     console.warn('⚠️ Nenhuma imagem fixa definida');
     gerarPosterTop3();
@@ -44,7 +41,6 @@ function preCarregarImagem() {
   
   img.onload = () => {
     console.log('📸 Imagem carregada, convertendo para base64...');
-    // Converte para base64 e salva em cache
     const canvas = document.createElement('canvas');
     canvas.width = img.width;
     canvas.height = img.height;
@@ -53,7 +49,6 @@ function preCarregarImagem() {
     posterImageDataURL = canvas.toDataURL('image/png');
     imagemCarregada = true;
     
-    // Salva no localStorage para cache
     try {
       localStorage.setItem('xtreino_poster_image_cache', posterImageDataURL);
       console.log('💾 Imagem salva em cache para próximo uso');
@@ -73,7 +68,7 @@ function preCarregarImagem() {
   img.src = POSTER_IMAGEM_FIXA;
 }
 
-// ========== CARREGAR IMAGEM DO LOCALSTORAGE (MAIS RÁPIDO) ==========
+// ========== CARREGAR IMAGEM DO LOCALSTORAGE ==========
 function carregarImagemCache() {
   try {
     const salva = localStorage.getItem('xtreino_poster_image_cache');
@@ -87,7 +82,7 @@ function carregarImagemCache() {
   return false;
 }
 
-// ========== CRIAR CONTROLES (com opção de trocar imagem) ==========
+// ========== CRIAR CONTROLES ==========
 function criarControlesPoster() {
   const posterCard = document.querySelector('.poster.card');
   if (!posterCard) return;
@@ -144,7 +139,6 @@ function criarControlesPoster() {
       const reader = new FileReader();
       reader.onload = (ev) => {
         posterImageDataURL = ev.target.result;
-        // Atualiza cache
         try {
           localStorage.setItem('xtreino_poster_image_cache', posterImageDataURL);
         } catch (e) {}
@@ -199,7 +193,7 @@ function criarControlesPoster() {
   posterCard.insertBefore(uploadContainer, posterWrapper);
 }
 
-// ========== GARANTIR CANVAS (PROPORÇÃO FIXA 2:3) ==========
+// ========== GARANTIR CANVAS ==========
 function ensurePosterCanvas() {
   let canvas = porId('posterCanvas');
   if (canvas && canvas instanceof HTMLCanvasElement && canvas.getContext) {
@@ -262,7 +256,7 @@ function ensurePosterCanvas() {
   return canvas;
 }
 
-// ========== GERAR PÔSTER (OTIMIZADO) ==========
+// ========== GERAR PÔSTER (VERSÃO MELHORADA COM ALTA QUALIDADE) ==========
 async function gerarPosterTop3() {
   const canvas = ensurePosterCanvas();
   if (!canvas) return false;
@@ -270,13 +264,17 @@ async function gerarPosterTop3() {
   const w = canvas.width;
   const h = canvas.height;
 
+  // Melhora a qualidade de renderização
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
   ctx.clearRect(0, 0, w, h);
 
-  // Desenhar imagem de fundo (usa a imagem em cache)
+  // Desenhar imagem de fundo
   if (posterImageDataURL) {
     try {
       const img = new Image();
-      img.src = posterImageDataURL; // JÁ ESTÁ EM BASE64, CARREGAMENTO INSTANTÂNEO
+      img.src = posterImageDataURL;
       await new Promise((resolve) => {
         if (img.complete) {
           resolve();
@@ -333,120 +331,220 @@ async function gerarPosterTop3() {
 
     ctx.save();
 
+    // Fundo do slot com gradiente melhorado
     const grad = ctx.createLinearGradient(x, y, x, y + sh);
-    grad.addColorStop(0, 'rgba(10, 10, 20, 0.88)');
-    grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.92)');
-    grad.addColorStop(1, 'rgba(10, 10, 20, 0.88)');
+    grad.addColorStop(0, 'rgba(10, 10, 20, 0.92)');
+    grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.95)');
+    grad.addColorStop(1, 'rgba(10, 10, 20, 0.92)');
     ctx.fillStyle = grad;
-    ctx.shadowColor = 'rgba(0,0,0,0.7)';
-    ctx.shadowBlur = 20;
-    ctx.shadowOffsetY = 6;
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = 8;
     ctx.fillRect(x, y, sw, sh);
     ctx.shadowBlur = 0;
 
+    // Borda com brilho
     ctx.strokeStyle = cores[i] || '#ff0000';
-    ctx.lineWidth = 5;
-    ctx.shadowColor = `rgba(255, 0, 0, 0.3)`;
-    ctx.shadowBlur = 12;
+    ctx.lineWidth = 6;
+    ctx.shadowColor = cores[i] || 'rgba(255, 0, 0, 0.3)';
+    ctx.shadowBlur = 20;
     ctx.strokeRect(x, y, sw, sh);
     ctx.shadowBlur = 0;
 
+    // Número da posição
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillStyle = cores[i] || '#ffffff';
-    ctx.font = `bold ${Math.min(sw, sh) * 0.15}px Arial`;
-    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-    ctx.shadowBlur = 8;
-    ctx.fillText(`#${i+1}`, x + 20, y + 15);
+    ctx.font = `bold ${Math.min(sw, sh) * 0.18}px Arial`;
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur = 12;
+    ctx.fillText(`#${i+1}`, x + 24, y + 18);
     ctx.shadowBlur = 0;
 
+    // LOGO - VERSÃO MELHORADA
     if (t && t.logoDataUrl) {
-      const img = new Image();
-      img.src = t.logoDataUrl;
-      await new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
-      const logoSize = Math.min(sw, sh) * 0.80;
-      const logoX = x + (sw - logoSize) / 2;
-      const logoY = y + (sh - logoSize) / 2 - 10;
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(logoX, logoY, logoSize, logoSize);
-      ctx.clip();
-      ctx.drawImage(img, logoX, logoY, logoSize, logoSize);
-      ctx.restore();
+      try {
+        const img = new Image();
+        img.src = t.logoDataUrl;
+        await new Promise((resolve) => {
+          if (img.complete) {
+            resolve();
+          } else {
+            img.onload = resolve;
+            img.onerror = resolve;
+          }
+        });
+        
+        const logoSize = Math.min(sw, sh) * 0.85;
+        const logoX = x + (sw - logoSize) / 2;
+        const logoY = y + (sh - logoSize) / 2 - 15;
+        
+        ctx.save();
+        
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 25;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 4;
+        
+        ctx.beginPath();
+        ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, logoX, logoY, logoSize, logoSize);
+        
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = cores[i] || '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.stroke();
+        
+        const gradGlow = ctx.createRadialGradient(
+          logoX + logoSize * 0.3, logoY + logoSize * 0.3, 0,
+          logoX + logoSize * 0.3, logoY + logoSize * 0.3, logoSize * 0.5
+        );
+        gradGlow.addColorStop(0, 'rgba(255,255,255,0.15)');
+        gradGlow.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = gradGlow;
+        ctx.beginPath();
+        ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.restore();
+      } catch (error) {
+        console.error('Erro ao carregar logo:', error);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.font = `${Math.min(sw, sh) * 0.12}px Arial`;
+        ctx.fillText('LOGO', x + sw/2, y + sh/2 - 10);
+      }
     } else {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(255,255,255,0.2)';
-      ctx.font = `${Math.min(sw, sh) * 0.12}px Arial`;
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.font = `${Math.min(sw, sh) * 0.14}px Arial`;
       ctx.fillText('SEM LOGO', x + sw/2, y + sh/2 - 10);
+      ctx.font = `${Math.min(sw, sh) * 0.2}px Arial`;
+      ctx.fillText('🖼️', x + sw/2, y + sh/2 - 40);
     }
 
+    // Nome do time
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = `bold ${Math.min(sw, sh) * 0.08}px Arial`;
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur = 10;
+    const nomeTime = t ? t.nome || `LINE ${t.id}` : '—';
+    ctx.fillText(nomeTime.substring(0, 20), x + sw/2, y + sh - 50);
+    ctx.shadowBlur = 0;
+
+    // Pontuação
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillStyle = cores[i] || '#ff0000';
-    ctx.font = `bold ${Math.min(sw, sh) * 0.15}px Arial`;
+    ctx.font = `bold ${Math.min(sw, sh) * 0.16}px Arial`;
     ctx.shadowColor = 'rgba(0,0,0,0.9)';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 15;
     const score = t ? `${t.score} pts` : '0 pts';
-    ctx.fillText(score, x + sw/2, y + sh - 20);
+    ctx.fillText(score, x + sw/2, y + sh - 18);
     ctx.shadowBlur = 0;
 
     ctx.restore();
   }
 
+  // Coroa para o primeiro lugar
   if (top[0]) {
     const cfg = slotConfigs[0];
-    const crownSize = Math.min(cfg.w, cfg.h) * 0.18;
-    drawCrown(ctx, cfg.x + cfg.w/2, cfg.y - crownSize*0.4, crownSize);
+    const crownSize = Math.min(cfg.w, cfg.h) * 0.22;
+    drawCrown(ctx, cfg.x + cfg.w/2, cfg.y - crownSize * 0.5, crownSize);
   }
+
+  // Borda externa no pôster
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+  ctx.lineWidth = 8;
+  ctx.shadowColor = 'rgba(255, 215, 0, 0.2)';
+  ctx.shadowBlur = 30;
+  ctx.strokeRect(10, 10, w - 20, h - 20);
+  ctx.restore();
 
   return true;
 }
 
-// ========== COROA ==========
+// ========== COROA MELHORADA ==========
 function drawCrown(ctx, x, y, size, color = '#FFD700') {
   ctx.save();
   ctx.translate(x, y);
+  
+  ctx.shadowColor = 'rgba(255, 215, 0, 0.4)';
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 8;
+  
   ctx.fillStyle = color;
   ctx.strokeStyle = '#FFA500';
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 3;
 
   ctx.beginPath();
-  const spikeHeight = size * 0.55;
-  const baseWidth = size * 1.1;
+  const spikeHeight = size * 0.6;
+  const baseWidth = size * 1.2;
 
   ctx.moveTo(-baseWidth / 2, spikeHeight / 2);
-  for (let i = 0; i < 5; i++) {
-    ctx.lineTo(-baseWidth / 2 + (baseWidth / 4) * i, -spikeHeight / 2);
-    if (i < 4) ctx.lineTo(-baseWidth / 2 + (baseWidth / 4) * (i + 0.5), spikeHeight / 4);
-  }
+  ctx.lineTo(-baseWidth / 2 + size * 0.1, -spikeHeight / 2);
+  ctx.lineTo(-baseWidth / 2 + size * 0.2, spikeHeight / 4);
+  ctx.lineTo(-baseWidth / 2 + size * 0.35, -spikeHeight / 2 * 0.9);
+  ctx.lineTo(-baseWidth / 2 + size * 0.45, spikeHeight / 5);
+  ctx.lineTo(-baseWidth / 2 + size * 0.55, -spikeHeight / 2 * 1.2);
+  ctx.lineTo(-baseWidth / 2 + size * 0.65, spikeHeight / 5);
+  ctx.lineTo(-baseWidth / 2 + size * 0.8, -spikeHeight / 2 * 0.9);
+  ctx.lineTo(-baseWidth / 2 + size * 0.9, spikeHeight / 4);
+  ctx.lineTo(baseWidth / 2, -spikeHeight / 2);
   ctx.lineTo(baseWidth / 2, spikeHeight / 2);
-  ctx.lineTo(-baseWidth / 2, spikeHeight / 2);
   ctx.closePath();
 
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = '#FF4444';
+  ctx.shadowBlur = 0;
+
+  const coresJoias = ['#FF4444', '#44FF44', '#4444FF', '#FFFF44', '#FF44FF'];
+  const tamanhoJoia = size * 0.12;
+  
   for (let i = 0; i < 5; i++) {
     ctx.beginPath();
-    const jewelX = -baseWidth / 2 + (baseWidth / 4) * i;
+    const jewelX = -baseWidth / 2 + size * 0.1 + i * (baseWidth / 5);
     const jewelY = -spikeHeight / 3;
-    ctx.arc(jewelX, jewelY, size * 0.14, 0, Math.PI * 2);
+    
+    ctx.moveTo(jewelX, jewelY - tamanhoJoia);
+    ctx.lineTo(jewelX + tamanhoJoia * 0.7, jewelY);
+    ctx.lineTo(jewelX, jewelY + tamanhoJoia);
+    ctx.lineTo(jewelX - tamanhoJoia * 0.7, jewelY);
+    ctx.closePath();
+    
+    ctx.fillStyle = coresJoias[i % coresJoias.length];
     ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }
 
+  ctx.globalAlpha = 0.2;
   ctx.fillStyle = '#FFFF99';
-  ctx.globalAlpha = 0.35;
   ctx.beginPath();
-  ctx.arc(0, -spikeHeight / 5, size * 0.35, 0, Math.PI * 2);
+  ctx.arc(0, -spikeHeight / 4, size * 0.4, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalAlpha = 1;
 
   ctx.restore();
 }
 
-// ========== BAIXAR PÔSTER ==========
+// ========== BAIXAR PÔSTER (ALTA QUALIDADE) ==========
 function baixarPoster() {
   const canvas = porId('posterCanvas');
   if (!canvas) {
@@ -454,7 +552,7 @@ function baixarPoster() {
       setTimeout(() => {
         const newCanvas = porId('posterCanvas');
         if (newCanvas) downloadCanvas(newCanvas);
-      }, 100);
+      }, 200);
     });
     return;
   }
@@ -462,28 +560,36 @@ function baixarPoster() {
 }
 
 function downloadCanvas(canvas) {
+  const scaleFactor = 2;
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = canvas.width * scaleFactor;
+  tempCanvas.height = canvas.height * scaleFactor;
+  const tempCtx = tempCanvas.getContext('2d');
+  
+  tempCtx.imageSmoothingEnabled = true;
+  tempCtx.imageSmoothingQuality = 'high';
+  
+  tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+  
   const link = document.createElement('a');
   link.download = `poster_top3_toman_${new Date().toISOString().slice(0,10)}.png`;
-  link.href = canvas.toDataURL('image/png', 1.0);
+  link.href = tempCanvas.toDataURL('image/png', 1.0);
   link.click();
+  
+  mostrarNotificacao('📸 Pôster baixado em alta resolução!', 'success');
 }
 
 // ========== EVENTOS ==========
 document.addEventListener('DOMContentLoaded', () => {
-  // Tenta carregar do cache primeiro (instantâneo)
   const cacheCarregado = carregarImagemCache();
   
   if (cacheCarregado) {
     console.log('⚡ Imagem carregada instantaneamente do cache!');
-    // Cria controles
     criarControlesPoster();
-    // Gera pôster imediatamente
     gerarPosterTop3();
   } else {
     console.log('⏳ Primeiro carregamento, buscando imagem...');
-    // Cria controles
     criarControlesPoster();
-    // Pré-carrega a imagem
     preCarregarImagem();
   }
 

@@ -38,10 +38,10 @@
       <!-- Botão Salvar OCULTO (hidden) -->
       <button id="btnSalvar" class="btn neon" style="display:none;">💾 Salvar</button>
       
-      <!-- Botão Limpar REMOVIDO -->
+      <!-- Botão Limpar - SUBSTITUI O EXPORTAR PNG -->
+      <button id="btnLimpar" class="btn ghost">🗑️ Limpar</button>
       
       <button id="btnToggleAnim" class="btn ghost">Animações: ON</button>
-      <button id="btnExportPNG" class="btn outline">Exportar PNG</button>
       <button id="btnExportPDF" class="btn outline">Exportar PDF</button>
       <button id="btnPosterTop3" class="btn neon">Pôster TOP 3</button>
     </nav>
@@ -61,8 +61,9 @@
         <p class="muted">
           Preencha nome, posição e kills.  
           Score, booyas e ranking são automáticos.
-          <br><small style="color: var(--c-text-muted);">📸 As logos são comprimidas para 120x120 para economizar espaço.</small>
+          <br><small style="color: var(--c-text-muted);">📸 As logos são comprimidas para 300x300 para melhor qualidade.</small>
           <br><small style="color: var(--c-text-muted);">💾 Os dados são salvos automaticamente a cada alteração.</small>
+          <br><small style="color: var(--c-text-muted);">🗑️ O botão "Limpar" zera apenas quedas e kills (mantém nomes e logos).</small>
         </p>
 
         <div id="teamsContainer" class="teams-grid"></div>

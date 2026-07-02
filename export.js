@@ -1,30 +1,124 @@
-/* export.js — Funções de exportação PNG e PDF da Tabela XTreino TOMAN ☯️ */
+/* export.js — Funções de exportação PDF e LIMPEZA da Tabela XTreino TOMAN ☯️ */
 
-// ========== EXPORTAR PNG ==========
-async function exportarPNG() {
-  const node = porId('scoreboard');
-  if (!node) return;
+// ========== MODAL DE CONFIRMAÇÃO PERSONALIZADA ==========
+function mostrarModalConfirmacao(mensagem, subMensagem, callback) {
+  // Remove modal existente se houver
+  const modalExistente = document.querySelector('.modal-overlay');
+  if (modalExistente) modalExistente.remove();
 
-  try {
-    const canvas = await html2canvas(node, {
-      backgroundColor: ESTADO.tema.bg,
-      scale: 2,
-      useCORS: true
-    });
-    const url = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tabela_xtreino_toman_${Date.now()}.png`;
-    a.click();
-  } catch (error) {
-    alert('Erro ao gerar imagem PNG: ' + error.message);
-  }
+  // Cria overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  
+  // Cria box da modal
+  const box = document.createElement('div');
+  box.className = 'modal-box';
+  
+  box.innerHTML = `
+    <div class="modal-icon">⚠️</div>
+    <div class="modal-title">ATENÇÃO!</div>
+    <div class="modal-message">${mensagem}</div>
+    <div class="modal-submessage">${subMensagem}</div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" data-action="cancel">
+        <span class="btn-icon">✕</span> Cancelar
+      </button>
+      <button class="modal-btn modal-btn-danger" data-action="confirm">
+        <span class="btn-icon">🗑️</span> Limpar Tudo
+      </button>
+    </div>
+  `;
+  
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  // Fecha modal ao clicar fora (apenas no overlay)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      fecharModal(overlay);
+      if (callback) callback(false);
+    }
+  });
+
+  // Eventos dos botões
+  const btnConfirm = box.querySelector('[data-action="confirm"]');
+  const btnCancel = box.querySelector('[data-action="cancel"]');
+
+  btnConfirm.addEventListener('click', () => {
+    fecharModal(overlay);
+    if (callback) callback(true);
+  });
+
+  btnCancel.addEventListener('click', () => {
+    fecharModal(overlay);
+    if (callback) callback(false);
+  });
+
+  // Fecha com ESC
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      fecharModal(overlay);
+      if (callback) callback(false);
+      document.removeEventListener('keydown', handleEsc);
+    }
+  };
+  document.addEventListener('keydown', handleEsc);
+
+  // Retorna função para fechar manualmente
+  return () => fecharModal(overlay);
+}
+
+function fecharModal(overlay) {
+  if (!overlay) return;
+  overlay.style.animation = 'modalFadeIn 0.3s ease reverse';
+  setTimeout(() => {
+    if (overlay.parentNode) overlay.remove();
+  }, 300);
+}
+
+// ========== LIMPAR DADOS (APENAS QUEDAS E KILLS) ==========
+function limparDados() {
+  // Usa a modal personalizada
+  mostrarModalConfirmacao(
+    'Você está prestes a limpar <strong>TODAS</strong> as quedas e kills!',
+    '⚠️ Os nomes das LINEs e logos serão <strong>mantidos</strong>.<br>Esta ação <strong>NÃO</strong> pode ser desfeita!',
+    (confirmado) => {
+      if (!confirmado) {
+        mostrarNotificacao('✅ Operação cancelada!', 'info');
+        return;
+      }
+
+      // Zera apenas posições e kills de todos os times
+      ESTADO.times.forEach(t => {
+        t.posQ = Array(NUM_QUEDAS).fill('');
+        t.killsQ = Array(NUM_QUEDAS).fill(0);
+        t.booyas = 0;
+        t.totalKills = 0;
+        t.score = 0;
+      });
+
+      // Recalcula e exibe
+      calcularEExibir();
+      
+      // Renderiza o editor novamente para atualizar os campos
+      renderizarEditorTimes();
+      
+      // Salva automaticamente
+      salvarDados();
+      
+      // Notifica o usuário
+      mostrarNotificacao('🗑️ Todas as quedas e kills foram limpas com sucesso!', 'warning');
+    }
+  );
 }
 
 // ========== EXPORTAR PDF ==========
 async function exportarPDF(tryShare = false) {
   const { jsPDF } = window.jspdf || {};
-  if (!jsPDF) { alert('jsPDF não carregado'); return; }
+  if (!jsPDF) { 
+    alert('❌ jsPDF não carregado! Verifique sua conexão com a internet.'); 
+    return; 
+  }
 
   const linhas = ESTADO.times.map(t => {
     const c = calcularPontuacaoTime(t);
@@ -37,14 +131,19 @@ async function exportarPDF(tryShare = false) {
   const margin = 28;
   const contentW = W - margin * 2;
 
+  // Fundo preto
   pdf.setFillColor('#000000');
   pdf.rect(0, 0, W, H, 'F');
 
+  // Cabeçalho
   pdf.setFillColor(ESTADO.tema.primaria);
   pdf.rect(margin, margin, contentW, 64, 'F');
-  pdf.setFontSize(20); pdf.setTextColor('#ffffff'); pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(20); 
+  pdf.setTextColor('#ffffff'); 
+  pdf.setFont('helvetica', 'bold');
   pdf.text('TABELA DE PONTUAÇÃO — XTREINO DA TOMAN', margin + contentW / 2, margin + 42, { align: 'center' });
 
+  // Cabeçalho da tabela
   let y = margin + 96;
   pdf.setFontSize(10);
   pdf.setTextColor('#ffffff');
@@ -65,14 +164,19 @@ async function exportarPDF(tryShare = false) {
   col.killsX = col.booyaX + col.booyaW + 8;
   col.scoreX = col.killsX + col.killsW + 8;
 
-  pdf.setTextColor(ESTADO.tema.primaria); pdf.text('Rank', margin + 6, y + 6);
+  // Cabeçalhos das colunas
+  pdf.setTextColor(ESTADO.tema.primaria); 
+  pdf.text('Rank', margin + 6, y + 6);
   pdf.text('LINE / Equipe', col.nameX, y + 6);
   pdf.setTextColor('#ffffff');
-  for (let i = 0; i < NUM_QUEDAS; i++) pdf.text(`Q${i + 1}`, col.qStartX + i * col.qW, y + 6);
+  for (let i = 0; i < NUM_QUEDAS; i++) {
+    pdf.text(`Q${i + 1}`, col.qStartX + i * col.qW, y + 6);
+  }
   pdf.text('Booyas', col.booyaX, y + 6);
-  pdf.text(' kills', col.killsX, y + 6);
+  pdf.text('Kills', col.killsX, y + 6);
   pdf.text('Score', col.scoreX, y + 6);
 
+  // Dados da tabela
   y += 28;
   pdf.setFontSize(10);
   for (let i = 0; i < linhas.length; i++) {
@@ -99,26 +203,56 @@ async function exportarPDF(tryShare = false) {
     }
   }
 
+  // Rodapé
   pdf.setFontSize(9);
   pdf.setTextColor('#999999');
   pdf.text('Gerado por Tabela XTreino TOMAN.', margin, H - 20);
+  pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`, margin + contentW - 180, H - 20);
 
   const blob = pdf.output('blob');
   if (tryShare) {
     const file = new File([blob], `tabela_xtreino_${Date.now()}.pdf`, { type: 'application/pdf' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ title: 'Tabela XTreino Da TOMAN', text: 'Tabela de pontuação', files: [file] }); return; } catch (e) { }
+      try { 
+        await navigator.share({ 
+          title: 'Tabela XTreino Da TOMAN', 
+          text: 'Tabela de pontuação do XTreino da TOMAN', 
+          files: [file] 
+        }); 
+        return; 
+      } catch (e) { 
+        if (e.name !== 'AbortError') {
+          console.error('Erro ao compartilhar:', e);
+        }
+      }
     }
   }
+  
   pdf.save(`tabela_xtreino_${Date.now()}.pdf`);
 }
 
-// ========== EVENTOS DE EXPORTAÇÃO ==========
+// ========== EVENTOS DE EXPORTAÇÃO E LIMPEZA ==========
 document.addEventListener('DOMContentLoaded', () => {
-  porId('btnExportPNG')?.addEventListener('click', exportarPNG);
-  porId('btnExportPDF')?.addEventListener('click', () => exportarPDF(false));
+  const btnPDF = porId('btnExportPDF');
+  const btnLimpar = porId('btnLimpar');
+  
+  if (btnPDF) {
+    btnPDF.addEventListener('click', () => exportarPDF(false));
+    console.log('✅ Botão Exportar PDF conectado');
+  } else {
+    console.warn('⚠️ Botão Exportar PDF não encontrado');
+  }
+  
+  if (btnLimpar) {
+    btnLimpar.addEventListener('click', limparDados);
+    console.log('✅ Botão Limpar conectado');
+  } else {
+    console.warn('⚠️ Botão Limpar não encontrado');
+  }
 });
 
 // Tornar funções globais
-window.exportarPNG = exportarPNG;
+window.limparDados = limparDados;
 window.exportarPDF = exportarPDF;
+window.mostrarModalConfirmacao = mostrarModalConfirmacao;
+window.fecharModal = fecharModal;

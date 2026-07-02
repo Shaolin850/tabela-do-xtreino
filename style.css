@@ -9,7 +9,6 @@
 
 /* ========== VARIÁVEIS CSS ========== */
 :root {
-  /* Cores principais - atualizáveis via JS */
   --c-primary: #ff0000;
   --c-primary-dark: #cc0000;
   --c-secondary: #ffffff;
@@ -20,45 +19,31 @@
   --c-text: #ffffff;
   --c-text-muted: #aaaaaa;
   --c-text-dark: #666666;
-  
-  /* Cores de estado */
   --c-success: #00ff88;
   --c-warning: #ffcc00;
   --c-danger: #ff4757;
   --c-info: #00e7ff;
-  
-  /* Efeitos visuais */
   --c-glow-primary: rgba(255, 0, 0, 0.3);
   --c-glow-secondary: rgba(255, 255, 255, 0.1);
   --c-shadow: rgba(0, 0, 0, 0.6);
   --c-overlay: rgba(10, 10, 10, 0.85);
-  
-  /* Tipografia */
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   --font-mono: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
-  
-  /* Espaçamentos responsivos */
   --space-xs: clamp(0.25rem, 0.5vw, 0.5rem);
   --space-sm: clamp(0.5rem, 1vw, 1rem);
   --space-md: clamp(1rem, 2vw, 1.5rem);
   --space-lg: clamp(1.5rem, 3vw, 2rem);
   --space-xl: clamp(2rem, 4vw, 3rem);
-  
-  /* Bordas responsivas */
   --radius-sm: clamp(4px, 0.5vw, 6px);
   --radius-md: clamp(8px, 1vw, 10px);
   --radius-lg: clamp(10px, 1.5vw, 14px);
   --radius-xl: clamp(12px, 2vw, 18px);
   --radius-round: 50%;
-  
-  /* Sombras */
   --shadow-sm: 0 2px 8px var(--c-shadow);
   --shadow-md: 0 4px 16px var(--c-shadow);
   --shadow-lg: 0 8px 32px var(--c-shadow);
   --shadow-xl: 0 16px 48px var(--c-shadow);
   --shadow-glow: 0 0 20px var(--c-glow-primary);
-  
-  /* Animações */
   --transition-fast: 150ms ease;
   --transition-normal: 300ms ease;
   --transition-slow: 500ms ease;
@@ -172,7 +157,6 @@ a:hover {
   background: rgba(10, 10, 10, 0.98);
 }
 
-/* Espaço para compensar o header fixo */
 .header-spacer {
   height: clamp(90px, 18vh, 140px);
   width: 100%;
@@ -513,11 +497,11 @@ a:hover {
 }
 
 .logo-preview {
-  width: clamp(40px, 8vw, 56px);
-  height: clamp(40px, 8vw, 56px);
-  border-radius: var(--radius-md);
+  width: clamp(50px, 8vw, 64px);
+  height: clamp(50px, 8vw, 64px);
+  border-radius: var(--radius-round);
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 3px solid rgba(255, 255, 255, 0.1);
   background: rgba(10, 10, 10, 0.6);
   transition: border-color var(--transition-fast);
   flex-shrink: 0;
@@ -576,8 +560,8 @@ a:hover {
 .podium-card:nth-child(3)::before { background: linear-gradient(to right, #cd7f32, #b86f2a); }
 
 .podium-logo {
-  width: clamp(50px, 12vw, 72px);
-  height: clamp(50px, 12vw, 72px);
+  width: clamp(60px, 12vw, 80px);
+  height: clamp(60px, 12vw, 80px);
   border-radius: var(--radius-round);
   object-fit: cover;
   border: 3px solid rgba(255, 255, 255, 0.1);
@@ -610,7 +594,7 @@ a:hover {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* ========== POSTER RESPONSIVO ========== */
+/* ========== POSTER MELHORADO ========== */
 .poster-wrapper {
   position: relative;
   width: 100%;
@@ -619,14 +603,29 @@ a:hover {
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.05);
   aspect-ratio: 9 / 16;
-  max-height: 70vh;
+  max-height: 80vh;
+  box-shadow: 0 0 60px rgba(255, 0, 0, 0.1);
 }
 
-.poster canvas {
+.poster-wrapper canvas {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: contain;
+  image-rendering: auto;
+  image-rendering: crisp-edges;
+}
+
+.poster-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.3) 100%);
+  border-radius: var(--radius-lg);
 }
 
 .poster-actions {
@@ -1113,7 +1112,6 @@ td.right {
     background: transparent;
   }
   
-  /* Aumentar área de toque para elementos interativos */
   button, 
   input[type="button"], 
   input[type="submit"], 
@@ -1124,7 +1122,7 @@ td.right {
   }
   
   input, select, textarea {
-    font-size: 16px; /* Evita zoom no iOS */
+    font-size: 16px;
   }
 }
 
@@ -1209,7 +1207,6 @@ td.right {
   background: linear-gradient(to bottom, var(--c-primary-dark), #990000);
 }
 
-/* Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--c-primary) var(--c-bg);
@@ -1222,7 +1219,6 @@ td.right {
   border-radius: var(--radius-sm);
 }
 
-/* Remove outline para elementos não teclado */
 :focus:not(:focus-visible) {
   outline: none;
 }
@@ -1275,6 +1271,268 @@ td.right {
   .toast-notification span:first-child {
     font-size: 22px !important;
   }
+}
+
+/* ========== MODAL DE CONFIRMAÇÃO PERSONALIZADA ========== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: modalFadeIn 0.3s ease;
+  padding: 20px;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+.modal-box {
+  background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+  border: 2px solid rgba(255, 0, 0, 0.3);
+  border-radius: 20px;
+  padding: 40px 45px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 0, 0, 0.1);
+  animation: modalSlideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, #ff0000, #ff4444, #ff0000);
+  background-size: 200% 100%;
+  animation: shimmerBorder 2s linear infinite;
+}
+
+@keyframes shimmerBorder {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.modal-icon {
+  text-align: center;
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: modalIconPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes modalIconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ff4444;
+  text-align: center;
+  margin-bottom: 12px;
+  text-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+}
+
+.modal-message {
+  font-size: 16px;
+  color: #cccccc;
+  text-align: center;
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+
+.modal-message strong {
+  color: #ff6666;
+  font-weight: 700;
+}
+
+.modal-submessage {
+  font-size: 14px;
+  color: #888888;
+  text-align: center;
+  margin-bottom: 28px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.modal-btn {
+  padding: 12px 32px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.modal-btn:hover::before {
+  left: 100%;
+}
+
+.modal-btn-danger {
+  background: linear-gradient(135deg, #ff0000, #cc0000);
+  color: white;
+  box-shadow: 0 4px 20px rgba(255, 0, 0, 0.4);
+}
+
+.modal-btn-danger:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(255, 0, 0, 0.6);
+}
+
+.modal-btn-danger:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.modal-btn-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  color: #aaaaaa;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.modal-btn-cancel:active {
+  transform: translateY(0);
+}
+
+.modal-btn .btn-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .modal-box {
+    padding: 28px 20px;
+    margin: 10px;
+    border-radius: 16px;
+  }
+  
+  .modal-icon {
+    font-size: 48px;
+  }
+  
+  .modal-title {
+    font-size: 20px;
+  }
+  
+  .modal-message {
+    font-size: 14px;
+  }
+  
+  .modal-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+    min-width: 100px;
+    flex: 1;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .modal-box {
+    padding: 20px 16px;
+  }
+  
+  .modal-icon {
+    font-size: 40px;
+  }
+  
+  .modal-title {
+    font-size: 18px;
+  }
+  
+  .modal-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    min-width: 80px;
+  }
+}
+
+.modal-overlay::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 40%, rgba(255, 0, 0, 0.03) 0%, transparent 60%),
+              radial-gradient(circle at 70% 60%, rgba(255, 0, 0, 0.02) 0%, transparent 50%);
+  animation: modalBgFloat 10s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes modalBgFloat {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(10px, -10px) rotate(2deg); }
+  66% { transform: translate(-10px, 10px) rotate(-2deg); }
 }
 
 /* ========== MODO ESCURO COMPLETO ========== */

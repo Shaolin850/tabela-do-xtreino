@@ -1,5 +1,5 @@
 /* core.js — Estado global, helpers, cálculo e UI principal da Tabela XTreino TOMAN ☯️ */
-// Versão com salvamento automático, compressão de logos e HEADER FIXO
+// Versão com salvamento automático, compressão de logos melhorada e HEADER FIXO
 
 const NUM_TIMES = 12;
 const NUM_QUEDAS = 4;
@@ -25,8 +25,8 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// ========== COMPRESSÃO DE IMAGEM ==========
-function comprimirImagem(dataURL, maxWidth = 120, maxHeight = 120, qualidade = 0.6) {
+// ========== COMPRESSÃO DE IMAGEM (VERSÃO MELHORADA) ==========
+function comprimirImagem(dataURL, maxWidth = 300, maxHeight = 300, qualidade = 0.85) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -34,20 +34,31 @@ function comprimirImagem(dataURL, maxWidth = 120, maxHeight = 120, qualidade = 0
       let width = img.width;
       let height = img.height;
       
-      if (width > maxWidth) {
-        height = (height * maxWidth) / width;
-        width = maxWidth;
-      }
-      if (height > maxHeight) {
-        width = (width * maxHeight) / height;
-        height = maxHeight;
+      // Mantém proporção e aumenta a resolução para o pôster
+      const targetSize = 300;
+      
+      if (width > height) {
+        if (width > targetSize) {
+          height = (height * targetSize) / width;
+          width = targetSize;
+        }
+      } else {
+        if (height > targetSize) {
+          width = (width * targetSize) / height;
+          height = targetSize;
+        }
       }
       
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
+      
+      // Melhora a qualidade do redimensionamento
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      
       ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', qualidade));
+      resolve(canvas.toDataURL('image/png', qualidade));
     };
     img.onerror = () => resolve(dataURL);
     img.src = dataURL;
@@ -122,7 +133,6 @@ function salvarDados() {
     
     const json = JSON.stringify(dados);
     localStorage.setItem('xtreino_dados', json);
-    // Não mostra notificação para não poluir a tela
   } catch (error) {
     if (error.name === 'QuotaExceededError' || error.code === 22) {
       mostrarNotificacao('❌ Espaço insuficiente! Exporte os dados.', 'danger');
@@ -343,7 +353,7 @@ function renderizarEditorTimes() {
         const reader = new FileReader();
         reader.onload = async (ev) => {
           try {
-            const comprimida = await comprimirImagem(ev.target.result, 120, 120, 0.6);
+            const comprimida = await comprimirImagem(ev.target.result, 300, 300, 0.85);
             ESTADO.times[idx].logoDataUrl = comprimida;
             const preview = porId(`logo-prev-${idx}`);
             preview.src = comprimida;
@@ -372,7 +382,7 @@ function renderizarEditorTimes() {
         ESTADO.times[idx].killsQ[q] = val === '' ? 0 : Math.max(0, parseInt(val, 10) || 0);
       }
       calcularEExibir();
-      salvarDados(); // SALVAMENTO AUTOMÁTICO
+      salvarDados();
     });
   });
 }
@@ -397,14 +407,11 @@ function montarTabelaTimesResumo(times) {
 function ligarEventosUI() {
   console.log('🔗 Conectando eventos...');
   
-  // Botão Salvar (OCULTO - mantido apenas para referência)
   const btnSalvar = porId('btnSalvar');
   if (btnSalvar) {
     console.log('✅ Botão "Salvar" encontrado (oculto)');
-    // Não precisa de evento pois o salvamento é automático
   }
 
-  // Botão Animações
   const btnToggleAnim = porId('btnToggleAnim');
   if (btnToggleAnim) {
     btnToggleAnim.addEventListener('click', () => {
